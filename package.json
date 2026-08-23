@@ -1,12 +1,8 @@
 {
   "name": "brandtest",
   "version": "1.0.0",
-  "description": "BrandTest - Valoración de Marcas Gráficas",
-  "main": "index.html",
-  "scripts": {
-    "dev": "vercel dev",
-    "deploy": "vercel --prod"
-  },
-  "author": "Marco Antonio Ramírez",
-  "license": "MIT"
+  "private": true,
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.0"
+  }
 }

@@ -10,6 +10,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
     :root {
         --bg: #15130F;
@@ -83,13 +84,25 @@
         gap: 0.75rem;
     }
 
+    .header-menu { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+    .header-menu-toggle {
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        width: 34px; height: 34px;
+        background: transparent; border: 1px solid var(--border); border-radius: 8px;
+        cursor: pointer; padding: 0; flex-shrink: 0;
+    }
+    .header-menu-toggle span { width: 15px; height: 1.6px; background: var(--text); border-radius: 1px; }
+
     .brand-name { font-family: var(--font-display); font-size: 1.25rem; font-weight: 700; color: var(--text); letter-spacing: -0.01em; }
     .brand-subtitle { font-family: var(--font-mono); font-size: 0.68rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
     .author-name { font-weight: 600; color: var(--text-muted); font-size: 0.8rem; }
     .author-title { font-size: 0.72rem; color: var(--text-muted); opacity: 0.8; }
     .header-brand-credit { display: flex; align-items: center; gap: 0.6rem; }
     .header-brand-logo { height: 20px; width: auto; opacity: 0.92; }
-    @media (max-width: 700px) { .header-brand-credit { display: none; } }
 
     .user-section { display: flex; align-items: center; gap: 0.75rem; }
     .user-info { text-align: right; }
@@ -213,6 +226,7 @@
         font-size: 0.9rem;
         color: var(--text-muted);
         line-height: 1.7;
+        max-width: 65ch;
     }
 
     .intro-steps {
@@ -259,7 +273,7 @@
     }
     .intro-footer strong { color: var(--text); }
 
-    .login-screen { display: flex; justify-content: center; align-items: center; min-height: 70vh; }
+    .login-screen { display: flex; justify-content: center; align-items: center; min-height: 70vh; min-height: 70dvh; }
 
     .login-card {
         background: var(--surface);
@@ -431,7 +445,7 @@
 
 
     .typology-name { font-family: var(--font-display); font-size: 1.15rem; font-weight: 700; color: var(--cyan); margin-bottom: 0.25rem; }
-    .typology-justification { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 0.6rem; line-height: 1.6; }
+    .typology-justification { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 0.6rem; line-height: 1.6; max-width: 65ch; }
     .confidence-label { font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-muted); margin-bottom: 0.25rem; text-transform: uppercase; letter-spacing: 0.04em; }
     .confidence-bar { height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; margin-bottom: 0.6rem; }
     .confidence-fill { height: 100%; background: var(--cyan); transition: width 0.8s; }
@@ -488,14 +502,20 @@
     .indicator-score { font-family: var(--font-mono); font-size: 1.15rem; font-weight: 600; white-space: nowrap; }
     .score-bar { height: 5px; background: var(--border); border-radius: 3px; overflow: hidden; margin: 0.4rem 0; }
     .score-fill { height: 100%; transition: width 0.8s; }
-    .indicator-justification { font-size: 0.76rem; color: var(--text-muted); margin-top: 0.25rem; line-height: 1.55; }
+    .indicator-justification { font-size: 0.76rem; color: var(--text-muted); margin-top: 0.25rem; line-height: 1.55; max-width: 65ch; }
     .indicator-detail { font-size: 0.7rem; color: var(--text-muted); margin-top: 0.3rem; padding-left: 0.6rem; border-left: 2px solid var(--border); }
 
     .diagnostic-text h3 { font-family: var(--font-display); font-size: 0.92rem; color: var(--cyan); margin: 0.9rem 0 0.4rem; }
     .diagnostic-text h3:first-child { margin-top: 0; }
     .diagnostic-text ul { margin-left: 1rem; margin-bottom: 0.6rem; }
-    .diagnostic-text li { font-size: 0.82rem; margin-bottom: 0.25rem; color: var(--text-muted); }
-    .diagnostic-text p { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 0.4rem; line-height: 1.65; }
+    .diagnostic-text li { font-size: 0.82rem; margin-bottom: 0.25rem; color: var(--text-muted); max-width: 65ch; }
+    .diagnostic-text p { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 0.4rem; line-height: 1.65; max-width: 65ch; }
+
+    .criteria-groups { display: grid; grid-template-columns: 1fr 1fr; gap: 0 1.5rem; }
+    @media (max-width: 600px) { .criteria-groups { grid-template-columns: 1fr; } }
+    .criteria-group-title { font-size: 0.78rem; font-weight: 600; color: var(--text); margin: 0.6rem 0 0.2rem; }
+    .criteria-groups ul { margin-left: 1rem; margin-bottom: 0; }
+    .criteria-groups li { font-size: 0.78rem; color: var(--text-muted); margin-bottom: 0.15rem; }
     .diagnostic-text strong { color: var(--text); }
 
     .diagnostic-feedback {
@@ -536,7 +556,7 @@
     .typology-select-card.auto { grid-column: 1 / -1; }
     .typology-select-card .tsc-name { font-weight: 600; font-size: 0.85rem; margin-bottom: 0.3rem; }
     .typology-select-card.selected .tsc-name { color: var(--cyan); }
-    .typology-select-card .tsc-desc { font-size: 0.74rem; color: var(--text-muted); line-height: 1.5; }
+    .typology-select-card .tsc-desc { font-size: 0.74rem; color: var(--text-muted); line-height: 1.5; max-width: 65ch; }
 
     .notification {
         position: fixed; top: 14px; right: 14px; background: var(--surface); border: 1px solid var(--cyan);
@@ -545,7 +565,7 @@
     }
     .notification.show { transform: translateX(0); }
 
-    .crop-modal-content { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 1.25rem; max-width: 560px; width: 94%; max-height: 88vh; overflow-y: auto; }
+    .crop-modal-content { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 1.25rem; max-width: 560px; width: 94%; max-height: 88vh; max-height: 88dvh; overflow-y: auto; }
     .crop-modal-content h2 { font-family: var(--font-display); font-size: 1rem; margin-bottom: 0.75rem; }
     .crop-img-container { max-height: 55vh; overflow: hidden; border-radius: 10px; background: var(--bg); }
     .crop-img-container img { max-width: 100%; display: block; }
@@ -565,15 +585,29 @@
         background: var(--bg);
         margin-top: 0.75rem;
         line-height: 1.6;
+        max-width: 65ch;
     }
 
     .print-letterhead { display: none; }
 
     @media (max-width: 700px) {
         .container { padding: 1rem 0.85rem 2.5rem; }
-        .header-content { flex-direction: column; text-align: center; }
-        .user-section { flex-direction: column; }
+        .header-content { justify-content: space-between; }
+        .header-menu-toggle { display: flex; }
+        .header-menu {
+            display: none;
+            width: 100%;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 0.6rem;
+            margin-top: 0.75rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid var(--border);
+        }
+        .header-menu.open { display: flex; }
+        .user-section { flex-direction: column; align-items: stretch; }
         .user-info { text-align: center; }
+        .header-brand-credit { justify-content: center; padding-top: 0.6rem; border-top: 1px solid var(--border); }
         .btn-group { flex-direction: column; }
         .btn { width: 100%; }
         .control-row { flex-direction: column; align-items: flex-start; }
@@ -689,7 +723,11 @@
                     <div class="brand-subtitle">Valoración de Marcas Gráficas</div>
                 </div>
             </div>
-            <button class="btn btn-sm" id="howItWorksBtn">¿Cómo funciona?</button>
+            <button class="header-menu-toggle" id="headerMenuToggle" aria-label="Abrir menú" aria-expanded="false">
+                <span></span><span></span><span></span>
+            </button>
+            <div class="header-menu" id="headerMenu">
+                <button class="btn btn-sm" id="howItWorksBtn">¿Cómo funciona?</button>
             <span id="testingBadge" style="display:none; font-family:var(--font-mono); font-size:0.65rem; color:var(--yellow); border:1px solid var(--yellow); border-radius:6px; padding:0.2rem 0.5rem; text-transform:uppercase; letter-spacing:0.05em;">Modo prueba — créditos liberados</span>
             <div class="user-section" id="userSection" style="display:none;">
                 <div class="user-info">
@@ -708,6 +746,7 @@
                     <div class="author-title">Gestión de Marca Gráfica</div>
                 </div>
             </div>
+            </div>
         </div>
     </header>
 
@@ -723,7 +762,7 @@
 
         <!-- CÓMO FUNCIONA (modal) -->
         <div id="howItWorksModal" class="modal">
-            <div class="intro-card" style="max-height:88vh; overflow-y:auto;">
+            <div class="intro-card" style="max-height:88vh; max-height:88dvh; overflow-y:auto;">
                 <div class="intro-header">
                     <svg class="intro-icon" viewBox="0 0 40 40" aria-hidden="true">
                         <g class="anim">
@@ -805,7 +844,7 @@
 
         <!-- MI CUENTA (modal) -->
         <div id="profileModal" class="modal">
-            <div class="card" style="max-width:440px; width:92%; max-height:88vh; overflow-y:auto;">
+            <div class="card" style="max-width:440px; width:92%; max-height:88vh; max-height:88dvh; overflow-y:auto;">
                 <h2 class="card-title">Mi cuenta <button class="btn btn-sm" id="closeProfileBtn" style="margin-left:auto;">Cerrar</button></h2>
                 <div class="form-group">
                     <label for="userWhatsapp">WhatsApp (para solicitar créditos)</label>
@@ -870,7 +909,7 @@
             <div class="card">
                 <h2 class="card-title">Panel de Administración</h2>
                 <div class="note-box">
-                    Este panel opera hoy sobre el almacenamiento local de <em>este</em> navegador: solo puede acreditar a usuarios registrados en el mismo dispositivo. Para que funcione entre dispositivos reales, este panel necesita conectarse a una base de datos compartida (pendiente de definir contigo).
+                    Créditos y login ya son reales (Supabase) — funcionan entre dispositivos. Este botón ahora llama a una función de servidor segura para acreditar; la primera vez te va a pedir tu contraseña de administrador.
                 </div>
                 <div class="form-group" style="margin-top:0.9rem;">
                     <label>Número de WhatsApp del usuario</label>
@@ -1136,15 +1175,33 @@
            ========================================================= */
         const TESTING_MODE = true;
 
-        let db = { users: {}, creditHistory: [], currentUser: null, introSeen: false, typologyFeedback: [], diagnosticFeedback: [] };
+        // ============ Conexión real a Supabase ============
+        const SUPABASE_URL = 'https://pybgughzjqzgbbsfklwi.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_mpRmXAFo-DEIMSMloI_OOg_-RzelkR-';
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // db: solo datos locales/cosméticos (no créditos, no cuentas — eso vive en Supabase).
+        let db = { introSeen: false, lastUser: null, typologyFeedback: [], diagnosticFeedback: [] };
+        // currentUser: la fila de public.users del usuario autenticado (créditos, plan, whatsapp...).
+        let currentUser = null;
 
         function loadDB() {
             const saved = localStorage.getItem('brandtest_db');
-            if (saved) db = Object.assign({ users: {}, creditHistory: [], currentUser: null, introSeen: false, typologyFeedback: [], diagnosticFeedback: [] }, JSON.parse(saved));
+            if (saved) db = Object.assign({ introSeen: false, lastUser: null, typologyFeedback: [], diagnosticFeedback: [] }, JSON.parse(saved));
         }
         function saveDB() { localStorage.setItem('brandtest_db', JSON.stringify(db)); }
 
         function openHowItWorks() { document.getElementById('howItWorksModal').classList.add('active'); }
+        function toggleHeaderMenu() {
+            const menu = document.getElementById('headerMenu');
+            const toggle = document.getElementById('headerMenuToggle');
+            const isOpen = menu.classList.toggle('open');
+            toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        }
+        function closeHeaderMenu() {
+            document.getElementById('headerMenu').classList.remove('open');
+            document.getElementById('headerMenuToggle').setAttribute('aria-expanded', 'false');
+        }
         function closeHowItWorks() {
             document.getElementById('howItWorksModal').classList.remove('active');
             db.introSeen = true;
@@ -1161,8 +1218,10 @@
         }
 
         // Personaliza la pantalla de login: si el navegador reconoce una
-        // cuenta usada antes (db.lastUser), muestra su avatar (iniciales)
-        // y su nombre en primera persona, en vez del saludo genérico.
+        // cuenta usada antes (db.lastUser, guardado al cerrar sesión),
+        // muestra su avatar (iniciales) y su nombre en primera persona.
+        // Esto es solo cosmético — la sesión real la maneja Supabase, y si
+        // sigue activa ni siquiera se llega a ver esta pantalla.
         function renderLoginScreen() {
             const known = db.lastUser;
             const dot = document.getElementById('loginCenterDot');
@@ -1202,58 +1261,77 @@
             renderLoginScreen();
         }
 
-        // TODO(Supabase): sustituir por OAuth real de Google. El mock actual
-        // usa el email como identificador estable para que un mismo usuario
-        // sea reconocido al volver a entrar (antes se generaba un ID nuevo
-        // en cada clic y nunca se reconocía a nadie que regresara).
-        function loginWithGoogle() {
-            const email = (db.lastUser && db.lastUser.email) || 'usuario@ejemplo.com'; // placeholder hasta login real
-            const userId = 'mock_' + email;
-            const isNewUser = !db.users[userId];
-            if (isNewUser) {
-                db.users[userId] = {
-                    googleId: userId, email, name: 'Usuario de Prueba', whatsapp: null,
-                    credits: 10, plan: 'libre', lastFreeAnalysis: null, totalAnalyses: 0,
-                    registrationDate: new Date().toISOString()
-                };
-                db.currentUser = userId;
-                saveDB();
-                notify('Registro exitoso. 10 créditos de bienvenida.');
-            } else {
-                db.currentUser = userId;
-                saveDB();
-                notify('Bienvenido de nuevo');
-            }
-            showMainApp();
-            if (isNewUser || !db.introSeen) openHowItWorks();
+        // ============ Autenticación real (Supabase + Google) ============
+        async function loginWithGoogle() {
+            const { error } = await supabaseClient.auth.signInWithOAuth({
+                provider: 'google',
+                options: { redirectTo: window.location.origin }
+            });
+            if (error) notify('Error al iniciar sesión: ' + error.message);
+            // El navegador redirige a Google y vuelve; initAuth()/onAuthStateChange
+            // detectan la sesión automáticamente al regresar.
         }
 
-        function logout() {
-            const user = db.users[db.currentUser];
-            if (user) db.lastUser = { name: user.name, email: user.email };
-            db.currentUser = null;
+        async function logout() {
+            if (currentUser) db.lastUser = { name: currentUser.name, email: currentUser.email };
             saveDB();
-            document.getElementById('loginScreen').style.display = 'flex';
-            document.getElementById('mainApp').style.display = 'none';
-            document.getElementById('userSection').style.display = 'none';
-            renderLoginScreen();
+            await supabaseClient.auth.signOut();
+        }
+
+        // Trae (o crea, si el disparador de la base de datos aún no terminó)
+        // la fila de public.users del usuario autenticado. Devuelve true si
+        // es un registro recién creado, para mostrarle la bienvenida.
+        async function loadUserProfile(authUser) {
+            let { data } = await supabaseClient.from('users').select('*').eq('id', authUser.id).single();
+            if (!data) {
+                await new Promise(r => setTimeout(r, 900));
+                ({ data } = await supabaseClient.from('users').select('*').eq('id', authUser.id).single());
+            }
+            if (data) {
+                currentUser = data;
+                return (Date.now() - new Date(data.registration_date).getTime()) < 8000;
+            }
+            currentUser = { id: authUser.id, email: authUser.email, name: authUser.user_metadata?.full_name || authUser.email, whatsapp: null, credits: 10, plan: 'libre', last_free_analysis: null, total_analyses: 0 };
+            return true;
+        }
+
+        async function initAuth() {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (session) {
+                await loadUserProfile(session.user);
+                showMainApp();
+            } else {
+                document.getElementById('loginScreen').style.display = 'flex';
+                renderLoginScreen();
+            }
+            supabaseClient.auth.onAuthStateChange(async (event, session) => {
+                if (event === 'SIGNED_IN' && session) {
+                    const isNew = await loadUserProfile(session.user);
+                    showMainApp();
+                    if (isNew || !db.introSeen) openHowItWorks();
+                } else if (event === 'SIGNED_OUT') {
+                    currentUser = null;
+                    document.getElementById('loginScreen').style.display = 'flex';
+                    document.getElementById('mainApp').style.display = 'none';
+                    document.getElementById('userSection').style.display = 'none';
+                    renderLoginScreen();
+                }
+            });
         }
 
         function showMainApp() {
-            const user = db.users[db.currentUser];
             document.getElementById('loginScreen').style.display = 'none';
             document.getElementById('mainApp').style.display = 'block';
             document.getElementById('userSection').style.display = 'flex';
             updateUserUI();
-            if (user.whatsapp === '59170857324') document.getElementById('adminBtn').style.display = 'inline-block';
+            if (currentUser.whatsapp === '59170857324') document.getElementById('adminBtn').style.display = 'inline-block';
         }
 
         function updateUserUI() {
-            const user = db.users[db.currentUser];
-            document.getElementById('userName').textContent = user.name;
-            document.getElementById('userCredits').textContent = user.credits + ' créditos';
-            document.getElementById('userPlan').textContent = 'Plan: ' + user.plan.charAt(0).toUpperCase() + user.plan.slice(1);
-            if (user.whatsapp) document.getElementById('userWhatsapp').value = user.whatsapp;
+            document.getElementById('userName').textContent = currentUser.name;
+            document.getElementById('userCredits').textContent = currentUser.credits + ' créditos';
+            document.getElementById('userPlan').textContent = 'Plan: ' + currentUser.plan.charAt(0).toUpperCase() + currentUser.plan.slice(1);
+            if (currentUser.whatsapp) document.getElementById('userWhatsapp').value = currentUser.whatsapp;
         }
 
         function openAdmin() {
@@ -1304,45 +1382,55 @@
             }
         }
 
-        function acreditarCreditos(amount) {
+        // Llama a la función de servidor (api/credit-user.js), que es la
+        // única pieza con permiso real para editar créditos de otro usuario.
+        // La contraseña de admin se pide una vez y se guarda solo para esta
+        // pestaña (sessionStorage) — no queda guardada de forma permanente.
+        async function acreditarCreditos(amount) {
             const whatsapp = document.getElementById('adminWhatsapp').value.trim();
             if (!whatsapp) { notify('Ingrese el número de WhatsApp'); return; }
-            let foundUser = null;
-            Object.keys(db.users).forEach(key => { if (db.users[key].whatsapp === whatsapp) foundUser = db.users[key]; });
-            if (!foundUser) { notify('Usuario no encontrado en este navegador'); return; }
-            foundUser.credits += amount;
-            db.creditHistory.push({ whatsapp, amount, date: new Date().toISOString() });
-            saveDB();
-            renderCreditHistory();
-            notify('+' + amount + ' créditos para ' + whatsapp);
-            document.getElementById('adminWhatsapp').value = '';
-        }
-
-        function renderCreditHistory() {
-            const container = document.getElementById('creditHistory');
-            container.innerHTML = '';
-            db.creditHistory.slice().reverse().forEach(entry => {
-                const div = document.createElement('div');
-                div.className = 'history-item';
-                div.textContent = entry.whatsapp + ' → +' + entry.amount + ' créditos (' + new Date(entry.date).toLocaleString() + ')';
-                container.appendChild(div);
-            });
-        }
-
-        function saveWhatsapp() {
-            const user = db.users[db.currentUser];
-            const whatsapp = document.getElementById('userWhatsapp').value.trim();
-            if (whatsapp) {
-                user.whatsapp = whatsapp;
-                saveDB();
-                notify('WhatsApp guardado');
-                if (whatsapp === '59170857324') document.getElementById('adminBtn').style.display = 'inline-block';
+            let adminSecret = sessionStorage.getItem('brandtest_admin_secret');
+            if (!adminSecret) {
+                adminSecret = prompt('Contraseña de administrador:');
+                if (!adminSecret) return;
+                sessionStorage.setItem('brandtest_admin_secret', adminSecret);
+            }
+            try {
+                const res = await fetch('/api/credit-user', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ whatsapp, amount, adminSecret })
+                });
+                const result = await res.json();
+                if (!res.ok) {
+                    if (res.status === 401) sessionStorage.removeItem('brandtest_admin_secret');
+                    notify('Error: ' + (result.error || 'no se pudo acreditar'));
+                    return;
+                }
+                notify('+' + amount + ' créditos para ' + whatsapp + ' (saldo nuevo: ' + result.newCredits + ')');
+                document.getElementById('adminWhatsapp').value = '';
+                renderCreditHistory();
+            } catch (err) {
+                notify('Error de conexión con el servidor: ' + err.message);
             }
         }
 
+        function renderCreditHistory() {
+            document.getElementById('creditHistory').innerHTML = '<div class="history-item">El historial detallado se agrega en el siguiente paso — por ahora, revisa la tabla credit_history directamente en Supabase.</div>';
+        }
+
+        async function saveWhatsapp() {
+            const whatsapp = document.getElementById('userWhatsapp').value.trim();
+            if (!whatsapp) return;
+            const { error } = await supabaseClient.from('users').update({ whatsapp }).eq('id', currentUser.id);
+            if (error) { notify('No se pudo guardar: ' + error.message); return; }
+            currentUser.whatsapp = whatsapp;
+            notify('WhatsApp guardado');
+            if (whatsapp === '59170857324') document.getElementById('adminBtn').style.display = 'inline-block';
+        }
+
         function solicitarCreditos() {
-            const user = db.users[db.currentUser];
-            const whatsapp = user.whatsapp || document.getElementById('userWhatsapp').value.trim();
+            const whatsapp = currentUser.whatsapp || document.getElementById('userWhatsapp').value.trim();
             if (!whatsapp) { notify('Primero guarda tu WhatsApp'); return; }
             const message = 'Hola Marco, solicito créditos para BrandTest. Mi número es ' + whatsapp;
             window.open('https://wa.me/59170857324?text=' + encodeURIComponent(message), '_blank');
@@ -1404,21 +1492,20 @@
             });
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
             loadDB();
             renderTypologySelector();
             if (TESTING_MODE) document.getElementById('testingBadge').style.display = 'inline-block';
-            if (db.currentUser && db.users[db.currentUser]) {
-                showMainApp();
-            } else {
-                document.getElementById('loginScreen').style.display = 'flex';
-                renderLoginScreen();
-            }
+            await initAuth();
             document.getElementById('howItWorksBtn').addEventListener('click', openHowItWorks);
             document.getElementById('closeHowItWorksBtn').addEventListener('click', closeHowItWorks);
             document.getElementById('profileBtn').addEventListener('click', openProfile);
             document.getElementById('closeProfileBtn').addEventListener('click', closeProfile);
             document.getElementById('switchAccountLink').addEventListener('click', switchAccount);
+            document.getElementById('headerMenuToggle').addEventListener('click', toggleHeaderMenu);
+            document.getElementById('headerMenu').addEventListener('click', (e) => {
+                if (e.target.tagName === 'BUTTON') closeHeaderMenu();
+            });
 
             const uploadArea = document.getElementById('uploadArea');
             const fileInput = document.getElementById('fileInput');
@@ -1944,9 +2031,14 @@
                 html += '<div class="print-detail-only">';
                 Object.keys(scores).forEach(k => { html += '<p><strong>' + evaluableIndicators[k].name + ': ' + scores[k].score + '%</strong><br>' + scores[k].justification + '</p>'; });
                 html += '</div>';
-                html += '<h3 class="print-detail-only">Criterios de Evaluación de Referencia</h3><ul class="print-detail-only">';
-                Object.keys(evaluableIndicators).forEach(k => evaluableIndicators[k].criteria.forEach(c => html += '<li>' + evaluableIndicators[k].name + ': ' + c + '</li>'));
-                html += '</ul>';
+                html += '<h3 class="print-detail-only">Criterios de Evaluación de Referencia</h3>';
+                html += '<div class="print-detail-only criteria-groups">';
+                Object.keys(evaluableIndicators).forEach(k => {
+                    html += '<p class="criteria-group-title">' + evaluableIndicators[k].name + '</p><ul>';
+                    evaluableIndicators[k].criteria.forEach(c => html += '<li>' + c + '</li>');
+                    html += '</ul>';
+                });
+                html += '</div>';
             }
             html += '<h3>Análisis Cromático</h3>';
             html += '<p>' + d.colorCount + ' colores detectados. ' + classifyColors(d.colorCount) + '.</p>';
@@ -1955,9 +2047,8 @@
 
         async function analyzeBrand() {
             if (!selectedImage) { notify('Selecciona una imagen primero'); return; }
-            const user = db.users[db.currentUser];
             const plan = document.getElementById('planSelect').value;
-            const check = checkPlanPermissions(user, plan);
+            const check = checkPlanPermissions(plan);
             if (!check.allowed) { notify(check.message); return; }
             document.getElementById('loadingIndicator').classList.add('active');
             document.getElementById('resultsSection').classList.remove('active');
@@ -1971,12 +2062,15 @@
             const scores = evaluateIndicatorsReal(d);
             if (plan !== 'libre') {
                 const cost = plan === 'estandar' ? 10 : 20;
-                if (!TESTING_MODE) user.credits -= cost;
-                user.totalAnalyses++; user.plan = plan;
-                saveDB(); updateUserUI();
+                if (!TESTING_MODE) {
+                    currentUser.credits -= cost;
+                    await supabaseClient.from('users').update({ credits: currentUser.credits, total_analyses: currentUser.total_analyses + 1, plan }).eq('id', currentUser.id);
+                }
+                currentUser.total_analyses++; currentUser.plan = plan;
+                updateUserUI();
             } else if (!TESTING_MODE) {
-                user.lastFreeAnalysis = new Date().toISOString();
-                saveDB();
+                currentUser.last_free_analysis = new Date().toISOString();
+                await supabaseClient.from('users').update({ last_free_analysis: currentUser.last_free_analysis }).eq('id', currentUser.id);
             }
             const results = {
                 typology,
@@ -1997,17 +2091,17 @@
             }, 350);
         }
 
-        function checkPlanPermissions(user, plan) {
+        function checkPlanPermissions(plan) {
             if (TESTING_MODE) return { allowed: true };
             if (plan === 'libre') {
-                if (user.lastFreeAnalysis) {
-                    const hoursSince = (Date.now() - new Date(user.lastFreeAnalysis).getTime()) / (1000*60*60);
+                if (currentUser.last_free_analysis) {
+                    const hoursSince = (Date.now() - new Date(currentUser.last_free_analysis).getTime()) / (1000*60*60);
                     if (hoursSince < 12) return { allowed: false, message: 'Espera ' + Math.ceil(12-hoursSince) + ' horas para otro análisis libre' };
                 }
                 return { allowed: true };
             }
             const cost = plan === 'estandar' ? 10 : 20;
-            if (user.credits < cost) return { allowed: false, message: 'Créditos insuficientes. Necesitas ' + cost + '. Saldo: ' + user.credits };
+            if (currentUser.credits < cost) return { allowed: false, message: 'Créditos insuficientes. Necesitas ' + cost + '. Saldo: ' + currentUser.credits };
             return { allowed: true };
         }
 
@@ -2040,7 +2134,7 @@
             document.getElementById('typologyConfidence').textContent = results.typology.confidence + '%';
             document.getElementById('typologyConfidenceBar').style.width = results.typology.confidence + '%';
             const t = typologies[results.typology.type];
-            document.getElementById('typologyDetails').innerHTML = '<div style="margin-bottom:0.4rem;"><strong style="color:var(--success);">Ventajas:</strong></div><ul style="margin-left:1rem; margin-bottom:0.5rem; font-size:0.75rem; color:var(--text-muted);">' + t.ventajas.map(v=>'<li>'+v+'</li>').join('') + '</ul><div style="margin-bottom:0.4rem;"><strong style="color:var(--danger);">Desventajas:</strong></div><ul style="margin-left:1rem; font-size:0.75rem; color:var(--text-muted);">' + t.desventajas.map(v=>'<li>'+v+'</li>').join('') + '</ul>';
+            document.getElementById('typologyDetails').innerHTML = '<div style="margin-bottom:0.4rem;"><strong style="color:var(--success);">Ventajas:</strong></div><ul style="margin-left:1rem; margin-bottom:0.5rem; font-size:0.75rem; color:var(--text-muted); max-width:65ch;">' + t.ventajas.map(v=>'<li>'+v+'</li>').join('') + '</ul><div style="margin-bottom:0.4rem;"><strong style="color:var(--danger);">Desventajas:</strong></div><ul style="margin-left:1rem; font-size:0.75rem; color:var(--text-muted); max-width:65ch;">' + t.desventajas.map(v=>'<li>'+v+'</li>').join('') + '</ul>';
             const paletteDiv = document.getElementById('colorPalette');
             paletteDiv.innerHTML = '';
             results.colors.palette.forEach(c => {
