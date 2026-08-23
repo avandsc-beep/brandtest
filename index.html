@@ -8,6 +8,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
 <style>
     :root {
         --bg: #15130F;
@@ -458,6 +460,12 @@
     }
     .notification.show { transform: translateX(0); }
 
+    .crop-modal-content { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 1.25rem; max-width: 560px; width: 94%; max-height: 88vh; overflow-y: auto; }
+    .crop-modal-content h2 { font-family: var(--font-display); font-size: 1rem; margin-bottom: 0.75rem; }
+    .crop-img-container { max-height: 55vh; overflow: hidden; border-radius: 10px; background: var(--bg); }
+    .crop-img-container img { max-width: 100%; display: block; }
+    .crop-actions { display: flex; gap: 0.5rem; margin-top: 0.85rem; flex-wrap: wrap; }
+
     .admin-panel { display: none; }
     .admin-panel.active { display: block; }
     .credit-input { width: 100%; padding: 0.55rem; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: inherit; font-size: 0.85rem; margin-bottom: 0.5rem; }
@@ -487,15 +495,44 @@
 
     /* ===== Impresión / PDF ===== */
     @media print {
-        body { background: #fff !important; color: #111 !important; }
+        @page { size: A4; margin: 12mm 14mm; }
+        body { background: #fff !important; color: #161412 !important; font-size: 10.5px; }
         .header, .footer, .btn, .upload-area, .edit-controls, #introScreen, #loginScreen,
         .modal, .admin-panel, .form-group, #uploadCard, #contextCard, #profileCard,
-        .notification, #analyzeBtn, #exportCard .btn-group { display: none !important; }
+        .notification, #analyzeBtn, #exportCard .btn-group, #correctTypologyBtn, .btn-crop { display: none !important; }
         #exportCard > .card-title { display: none !important; }
-        .card { border: 1px solid #ccc !important; box-shadow: none !important; break-inside: avoid; background: #fff !important; }
-        .score-value, .score-label, .typology-name, .card-title, .indicator-name, .donut-center-value { color: #111 !important; }
-        .indicator-justification, .diagnostic-text p, .diagnostic-text li, .text-muted, .typology-justification { color: #444 !important; }
         .container { padding: 0 !important; max-width: 100% !important; }
+
+        /* Compactar tarjetas: menos margen/relleno, sin sombras, bordes finos */
+        .card { border: 1px solid #ccc !important; box-shadow: none !important; background: #fff !important;
+            padding: 0.6rem 0.75rem !important; margin-bottom: 0.5rem !important; border-radius: 6px !important; }
+        .card-title { padding-bottom: 0.3rem !important; margin-bottom: 0.5rem !important; font-size: 12px !important; }
+
+        /* Cada bloque no se corta a la mitad entre páginas */
+        .card, .category-section, .indicator-item, .score-display, .charts-container { break-inside: avoid; page-break-inside: avoid; }
+
+        /* Puntuación general y tipología: banda superior compacta, no cada uno en su propia página */
+        .score-display { padding: 0.75rem !important; margin-bottom: 0.5rem !important; }
+        .score-value { font-size: 1.8rem !important; }
+        .score-display::before { display: none; }
+
+        /* Gráficos lado a lado y más pequeños para no ocupar una hoja cada uno */
+        .charts-container { grid-template-columns: 1fr 1fr !important; gap: 0.5rem !important; }
+        .radar-chart { width: 150px !important; height: 150px !important; }
+        .donut-chart { width: 90px !important; height: 90px !important; }
+        .donut-center-value { font-size: 0.95rem !important; }
+
+        /* Indicadores en dos columnas para aprovechar el ancho de la hoja */
+        .category-body { columns: 2; column-gap: 0.75rem; }
+        .indicator-item { padding: 0.5rem 0.6rem !important; margin-bottom: 0.4rem !important; break-inside: avoid; }
+        .indicator-justification, .indicator-detail { font-size: 9px !important; }
+        .metrics-strip { gap: 0.3rem !important; }
+        .metric-chip { font-size: 9px !important; padding: 0.2rem 0.4rem !important; }
+
+        .score-value, .score-label, .typology-name, .card-title, .indicator-name, .donut-center-value { color: #161412 !important; }
+        .indicator-justification, .diagnostic-text p, .diagnostic-text li, .text-muted, .typology-justification,
+        .metric-chip, .confidence-label, .indicator-detail { color: #4A443C !important; }
+        .diagnostic-text h3 { color: #00757D !important; font-size: 11px !important; margin: 0.5rem 0 0.25rem !important; }
         body.print-summary .print-detail-only { display: none !important; }
         a[href]::after { content: ""; }
     }
@@ -669,13 +706,17 @@
                 </div>
                 <input type="file" id="fileInput" accept="image/*" style="display:none;" aria-hidden="true">
                 <div class="btn-group">
-                    <button class="btn btn-primary" id="selectFileBtn">Seleccionar archivo</button>
-                    <button class="btn" id="cameraBtn">Usar cámara</button>
+                    <button class="btn btn-primary" id="cameraBtn">Usar cámara</button>
+                    <button class="btn" id="selectFileBtn">Seleccionar archivo</button>
                 </div>
 
                 <div id="previewSection" style="display:none;">
                     <div class="preview-container">
                         <img id="previewImage" alt="Vista previa de la marca cargada">
+                    </div>
+                    <div class="btn-group">
+                        <button class="btn btn-sm" id="cropBtn">Recortar imagen</button>
+                        <button class="btn btn-sm" id="newAnalysisFromUploadBtn">Quitar imagen</button>
                     </div>
                     <div class="edit-controls">
                         <div class="control-row">
@@ -760,6 +801,9 @@
                 <div class="score-display">
                     <div class="score-value" id="overallScore">--<span>%</span></div>
                     <div class="score-label">Puntuación General</div>
+                </div>
+                <div class="btn-group" style="margin-bottom:1.25rem;">
+                    <button class="btn btn-primary" id="newAnalysisBtn" style="width:100%;">Nuevo análisis</button>
                 </div>
 
                 <div class="charts-container">
@@ -849,6 +893,21 @@
         <div class="modal-buttons">
             <button class="btn btn-accent" id="captureBtn">Capturar</button>
             <button class="btn" id="closeCameraBtn">Cerrar</button>
+        </div>
+    </div>
+
+    <div class="modal" id="cropModal">
+        <div class="crop-modal-content">
+            <h2>Recortar imagen</h2>
+            <div class="crop-img-container">
+                <img id="cropperImageEl" src="" alt="Imagen a recortar">
+            </div>
+            <div class="crop-actions">
+                <button class="btn btn-sm" id="cropRotateBtn">Rotar 90°</button>
+                <button class="btn btn-sm" id="cropResetBtn">Restablecer</button>
+                <button class="btn btn-sm" id="cropCancelBtn">Cancelar</button>
+                <button class="btn btn-sm btn-primary" id="cropConfirmBtn" style="margin-left:auto;">Aplicar recorte</button>
+            </div>
         </div>
     </div>
 
@@ -993,6 +1052,7 @@
 
         let selectedImage = null;
         let cameraStream = null;
+        let cropperInstance = null;
         let currentResults = null;
         let correctedTypology = null;
 
@@ -1054,6 +1114,13 @@
             document.getElementById('exportSummaryBtn').addEventListener('click', () => exportReport('summary'));
             document.getElementById('logoutBtn').addEventListener('click', logout);
             document.getElementById('adminBtn').addEventListener('click', openAdmin);
+            document.getElementById('cropBtn').addEventListener('click', openCropModal);
+            document.getElementById('cropCancelBtn').addEventListener('click', closeCropModal);
+            document.getElementById('cropConfirmBtn').addEventListener('click', confirmCrop);
+            document.getElementById('cropRotateBtn').addEventListener('click', () => { if (cropperInstance) cropperInstance.rotate(90); });
+            document.getElementById('cropResetBtn').addEventListener('click', () => { if (cropperInstance) cropperInstance.reset(); });
+            document.getElementById('newAnalysisFromUploadBtn').addEventListener('click', clearImage);
+            document.getElementById('newAnalysisBtn').addEventListener('click', resetApp);
         });
 
         function handleFile(file) {
@@ -1092,6 +1159,53 @@
         function closeCamera() {
             if (cameraStream) cameraStream.getTracks().forEach(t => t.stop());
             document.getElementById('cameraModal').classList.remove('active');
+        }
+
+        /* ---- Recorte (Cropper.js) ---- */
+        function openCropModal() {
+            if (!selectedImage) { notify('Primero sube o captura una imagen'); return; }
+            const modal = document.getElementById('cropModal');
+            const img = document.getElementById('cropperImageEl');
+            img.src = selectedImage;
+            modal.classList.add('active');
+            if (cropperInstance) { cropperInstance.destroy(); cropperInstance = null; }
+            cropperInstance = new Cropper(img, { viewMode: 1, dragMode: 'move', autoCropArea: 0.9, guides: true, center: true, background: false });
+        }
+        function closeCropModal() {
+            document.getElementById('cropModal').classList.remove('active');
+            if (cropperInstance) { cropperInstance.destroy(); cropperInstance = null; }
+        }
+        function confirmCrop() {
+            if (!cropperInstance) return;
+            const canvas = cropperInstance.getCroppedCanvas({ imageSmoothingQuality: 'high' });
+            selectedImage = canvas.toDataURL('image/png');
+            document.getElementById('previewImage').src = selectedImage;
+            closeCropModal();
+            notify('Imagen recortada');
+        }
+
+        /* ---- Quitar imagen / reiniciar análisis ---- */
+        function clearImage() {
+            selectedImage = null;
+            document.getElementById('previewSection').style.display = 'none';
+            document.getElementById('previewImage').src = '';
+            document.getElementById('fileInput').value = '';
+            ['brightness','contrast','saturation','rotation'].forEach(id => { document.getElementById(id).value = 0; });
+            document.getElementById('whiteBalance').value = 'none';
+            updateAdjustments();
+        }
+        function resetApp() {
+            clearImage();
+            document.getElementById('brandName').value = '';
+            document.getElementById('sector').value = '';
+            document.getElementById('competitors').value = '';
+            document.getElementById('brandAttributes').value = '';
+            document.getElementById('planSelect').value = 'libre';
+            correctedTypology = null;
+            currentResults = null;
+            document.getElementById('resultsSection').classList.remove('active');
+            document.getElementById('uploadCard').scrollIntoView({ behavior: 'smooth' });
+            notify('Listo para un nuevo análisis');
         }
 
         function updateAdjustments() {
@@ -1369,12 +1483,66 @@
             return Math.round(total / weightSum);
         }
 
+        function diagnosticVerdict(score) {
+            if (score >= 70) return { title: 'No necesita ajustes', color: 'var(--success)',
+                description: 'La marca cumple de forma consistente los seis indicadores medidos: no se detectan problemas estructurales en la ejecución, el contraste o la composición.',
+                recommendation: 'Mantener el sistema de marca actual. Conviene repetir esta medición cada vez que se ajuste la paleta, la tipografía o el símbolo, para verificar que el cambio no degrade el desempeño.' };
+            if (score >= 50) return { title: 'Ajuste leve', color: 'var(--yellow)',
+                description: 'La marca funciona en la mayoría de los indicadores, con uno o dos puntos débiles concretos que conviene revisar antes de una aplicación intensiva (papelería, señalética, medios digitales a gran escala).',
+                recommendation: 'Revisar puntualmente los indicadores con menor puntaje (ver Recomendaciones Prioritarias) sin necesidad de rediseñar la marca completa.' };
+            if (score >= 35) return { title: 'Necesita ajustes', color: 'var(--magenta)',
+                description: 'Se detectan varias debilidades combinadas — contraste, complejidad de forma o reproducibilidad — que probablemente afecten el desempeño de la marca en aplicaciones reales.',
+                recommendation: 'Planificar una intervención dirigida sobre los indicadores más bajos antes de invertir en producción a gran escala.' };
+            return { title: 'Necesita rediseño', color: 'var(--danger)',
+                description: 'La combinación de indicadores bajos sugiere problemas estructurales — no puntuales — en la construcción de la marca.',
+                recommendation: 'Considerar un proceso de rediseño integral en vez de ajustes puntuales, partiendo del marco de indicadores de Chaves y Belluccia.' };
+        }
+
+        function categoryBreakdownHtml(scores) {
+            let html = '<ul>';
+            Object.keys(categories).forEach(catKey => {
+                const catScores = [];
+                Object.keys(evaluableIndicators).forEach(k => { if (evaluableIndicators[k].category === parseInt(catKey)) catScores.push(scores[k].score); });
+                const avg = Math.round(catScores.reduce((a,b)=>a+b,0)/catScores.length);
+                const tier = avg >= 70 ? 'sólido' : avg >= 50 ? 'aceptable, con margen de mejora' : 'débil';
+                html += '<li><strong>' + categories[catKey].name + ' (' + avg + '%):</strong> desempeño ' + tier + '.</li>';
+            });
+            html += '</ul>';
+            return html;
+        }
+
+        function generateRecommendations(scores) {
+            const entries = Object.keys(scores).map(k => ({ key: k, name: evaluableIndicators[k].name, score: scores[k].score }));
+            entries.sort((a, b) => a.score - b.score);
+            const weak = entries.filter(e => e.score < 75).slice(0, 3);
+            if (weak.length === 0) return '<p>Los seis indicadores se ubican por encima del umbral de atención (75%): no hay recomendaciones prioritarias pendientes.</p>';
+            let html = '<ul>';
+            weak.forEach(e => {
+                const crit = evaluableIndicators[e.key].criteria[0];
+                const text = e.score < 50
+                    ? 'Atención prioritaria — el puntaje (' + e.score + '%) está por debajo del umbral aceptable. Revisar en particular: ' + crit + '.'
+                    : 'Ajuste puntual — el puntaje (' + e.score + '%) es aceptable pero mejorable. Revisar: ' + crit + '.';
+                html += '<li><strong>' + e.name + ':</strong> ' + text + '</li>';
+            });
+            html += '</ul>';
+            return html;
+        }
+
         function generateDiagnostic(typology, scores, d, plan) {
             const t = typologies[typology.type];
+            const overall = calculateOverall(scores);
+            const verdict = diagnosticVerdict(overall);
             let html = '';
+
+            html += '<h3>Veredicto General</h3>';
+            html += '<p><strong style="color:' + verdict.color + ';">' + verdict.title + '</strong> — puntuación general ' + overall + '%.</p>';
+            html += '<p>' + verdict.description + '</p>';
+            html += '<p><strong>Recomendación general:</strong> ' + verdict.recommendation + '</p>';
+
             html += '<h3>Análisis Estructural</h3>';
             html += '<p>La marca fue clasificada como <strong>' + t.name + '</strong>. ' + t.description + '</p>';
             html += '<p><strong>Base de la clasificación:</strong> ' + typology.justification + '</p>';
+
             html += '<h3>Métricas Calculadas</h3>';
             html += '<div class="metrics-strip">'
                 + '<span class="metric-chip">Contraste: <strong>' + d.contrast.toFixed(2) + ':1</strong></span>'
@@ -1384,8 +1552,16 @@
                 + '<span class="metric-chip">Colores: <strong>' + d.colorCount + '</strong></span>'
                 + '<span class="metric-chip">Cobertura de tinta: <strong>' + Math.round(d.inkRatio*100) + '%</strong></span>'
                 + '</div>';
+
+            html += '<h3>Desglose por Categoría</h3>';
+            html += categoryBreakdownHtml(scores);
+
+            html += '<h3>Recomendaciones Prioritarias</h3>';
+            html += generateRecommendations(scores);
+
             html += '<h3>Ventajas del Tipo</h3><ul>'; t.ventajas.forEach(v => html += '<li>' + v + '</li>'); html += '</ul>';
             html += '<h3>Desventajas del Tipo</h3><ul>'; t.desventajas.forEach(v => html += '<li>' + v + '</li>'); html += '</ul>';
+
             if (plan === 'libre') {
                 html += '<p style="color:var(--yellow);"><strong>Plan Libre:</strong> informe limitado. Actualiza a Estándar o Pro para el detalle completo de indicadores y criterios.</p>';
             } else {
