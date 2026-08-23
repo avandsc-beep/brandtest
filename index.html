@@ -498,6 +498,14 @@
     .diagnostic-text p { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 0.4rem; line-height: 1.65; }
     .diagnostic-text strong { color: var(--text); }
 
+    .diagnostic-feedback {
+        display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;
+        margin-top: 1rem; padding-top: 0.85rem; border-top: 1px solid var(--border);
+        font-size: 0.8rem; color: var(--text-muted);
+    }
+    .diagnostic-feedback-buttons { display: flex; gap: 0.4rem; }
+    .diagnostic-feedback-buttons .btn.selected { border-color: var(--cyan); color: var(--cyan); }
+
     .footer { background: var(--surface); border-top: 1px solid var(--border); padding: 1.25rem 1.5rem; text-align: center; margin-top: 1.5rem; }
     .footer p { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.15rem; }
     .footer strong { color: var(--text); }
@@ -875,6 +883,14 @@
                 </div>
                 <h3 style="font-family:var(--font-mono); font-size:0.8rem; margin-top:1.1rem; margin-bottom:0.5rem; text-transform:uppercase; letter-spacing:0.04em; color:var(--text-muted);">Historial</h3>
                 <div id="creditHistory"></div>
+
+                <h3 style="font-family:var(--font-mono); font-size:0.8rem; margin-top:1.4rem; margin-bottom:0.25rem; text-transform:uppercase; letter-spacing:0.04em; color:var(--text-muted);">Calibración — correcciones de tipología</h3>
+                <p style="font-size:0.72rem; color:var(--text-muted); margin-bottom:0.5rem; text-transform:none;">Cada vez que alguien corrige la tipología, queda el registro de qué predijo el sistema contra qué dijo la persona. Esto es lo que permite ajustar el árbol de reglas con casos reales.</p>
+                <div id="typologyFeedbackList"></div>
+
+                <h3 style="font-family:var(--font-mono); font-size:0.8rem; margin-top:1.4rem; margin-bottom:0.25rem; text-transform:uppercase; letter-spacing:0.04em; color:var(--text-muted);">Calibración — opinión sobre el diagnóstico</h3>
+                <div id="diagnosticFeedbackList"></div>
+
                 <button class="btn btn-sm" onclick="closeAdmin()" style="margin-top:0.85rem;">Cerrar panel</button>
             </div>
         </div>
@@ -940,6 +956,9 @@
 
             <div class="card" id="contextCard">
                 <h2 class="card-title">Contexto de la Marca</h2>
+                <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:1rem; text-transform:none;">
+                    Estos datos identifican la marca en el informe y te dan contexto propio para leer el resultado. Los 6 indicadores automáticos se calculan solo sobre la imagen — sector, competencia y atributos aún no alimentan el puntaje (son parte de los 8 indicadores del marco de Chaves y Belluccia que todavía no medimos).
+                </p>
                 <div class="form-group">
                     <label for="brandName">Nombre de la marca</label>
                     <input type="text" class="form-input" id="brandName" placeholder="Nombre">
@@ -1036,6 +1055,14 @@
                 <div class="card">
                     <h2 class="card-title">Diagnóstico General <span class="eyebrow">Basado en la imagen cargada</span></h2>
                     <div class="diagnostic-text" id="diagnosticText"></div>
+                    <div class="diagnostic-feedback" id="diagnosticFeedback">
+                        <span id="feedbackQuestion">¿Te parece acertado este diagnóstico?</span>
+                        <div class="diagnostic-feedback-buttons" id="feedbackButtons">
+                            <button class="btn btn-sm" id="feedbackUpBtn" aria-label="Sí, me parece acertado">Sí</button>
+                            <button class="btn btn-sm" id="feedbackDownBtn" aria-label="No, no me parece acertado">No</button>
+                        </div>
+                        <span id="feedbackThanks" style="display:none;">Gracias, quedó registrado.</span>
+                    </div>
                 </div>
 
                 <div class="card" id="exportCard">
@@ -1109,11 +1136,11 @@
            ========================================================= */
         const TESTING_MODE = true;
 
-        let db = { users: {}, creditHistory: [], currentUser: null, introSeen: false };
+        let db = { users: {}, creditHistory: [], currentUser: null, introSeen: false, typologyFeedback: [], diagnosticFeedback: [] };
 
         function loadDB() {
             const saved = localStorage.getItem('brandtest_db');
-            if (saved) db = JSON.parse(saved);
+            if (saved) db = Object.assign({ users: {}, creditHistory: [], currentUser: null, introSeen: false, typologyFeedback: [], diagnosticFeedback: [] }, JSON.parse(saved));
         }
         function saveDB() { localStorage.setItem('brandtest_db', JSON.stringify(db)); }
 
@@ -1233,10 +1260,48 @@
             document.getElementById('adminPanel').classList.add('active');
             document.getElementById('mainApp').style.display = 'none';
             renderCreditHistory();
+            renderCalibrationFeedback();
         }
         function closeAdmin() {
             document.getElementById('adminPanel').classList.remove('active');
             document.getElementById('mainApp').style.display = 'block';
+        }
+
+        function renderCalibrationFeedback() {
+            const typoContainer = document.getElementById('typologyFeedbackList');
+            if (!db.typologyFeedback.length) {
+                typoContainer.innerHTML = '<div class="history-item">Sin correcciones registradas todavía.</div>';
+            } else {
+                typoContainer.innerHTML = '';
+                db.typologyFeedback.slice().reverse().forEach(entry => {
+                    const div = document.createElement('div');
+                    div.className = 'history-item';
+                    div.textContent = (typologies[entry.predicted] ? typologies[entry.predicted].name : entry.predicted)
+                        + ' (predicho, ' + entry.predictedConfidence + '% confianza) → corregido a '
+                        + (typologies[entry.corrected] ? typologies[entry.corrected].name : entry.corrected)
+                        + ' — ' + new Date(entry.date).toLocaleString();
+                    typoContainer.appendChild(div);
+                });
+            }
+            const diagContainer = document.getElementById('diagnosticFeedbackList');
+            if (!db.diagnosticFeedback.length) {
+                diagContainer.innerHTML = '<div class="history-item">Sin opiniones registradas todavía.</div>';
+            } else {
+                const positives = db.diagnosticFeedback.filter(f => f.positive).length;
+                const summary = document.createElement('div');
+                summary.className = 'history-item';
+                summary.style.color = 'var(--text)';
+                summary.textContent = positives + ' de ' + db.diagnosticFeedback.length + ' opiniones positivas';
+                diagContainer.innerHTML = '';
+                diagContainer.appendChild(summary);
+                db.diagnosticFeedback.slice().reverse().forEach(entry => {
+                    const div = document.createElement('div');
+                    div.className = 'history-item';
+                    div.textContent = (entry.positive ? 'Sí' : 'No') + ' — ' + (typologies[entry.typology] ? typologies[entry.typology].name : entry.typology)
+                        + ', puntaje ' + entry.overallScore + '%, plan ' + entry.plan + ' — ' + new Date(entry.date).toLocaleString();
+                    diagContainer.appendChild(div);
+                });
+            }
         }
 
         function acreditarCreditos(amount) {
@@ -1383,6 +1448,8 @@
             document.getElementById('cropResetBtn').addEventListener('click', () => { if (cropperInstance) cropperInstance.reset(); });
             document.getElementById('newAnalysisFromUploadBtn').addEventListener('click', clearImage);
             document.getElementById('newAnalysisBtn').addEventListener('click', resetApp);
+            document.getElementById('feedbackUpBtn').addEventListener('click', () => submitDiagnosticFeedback(true));
+            document.getElementById('feedbackDownBtn').addEventListener('click', () => submitDiagnosticFeedback(false));
         });
 
         function handleFile(file) {
@@ -1960,6 +2027,11 @@
             document.getElementById('analyzedImage').src = results.imageUsed || '';
             document.getElementById('analyzedBrandName').textContent = results.brandNameUsed ? results.brandNameUsed : 'Marca sin nombre';
             document.getElementById('analyzedDate').textContent = new Date(results.analyzedAt || Date.now()).toLocaleDateString('es-BO', { year: 'numeric', month: 'long', day: 'numeric' });
+            document.getElementById('feedbackUpBtn').classList.remove('selected');
+            document.getElementById('feedbackDownBtn').classList.remove('selected');
+            document.getElementById('feedbackThanks').style.display = 'none';
+            document.getElementById('feedbackQuestion').style.display = 'inline';
+            document.getElementById('feedbackButtons').style.display = 'flex';
             animateScoreCount(document.getElementById('overallScore'), results.overallScore);
             renderRadarChart(results);
             renderCategoryBars(results);
@@ -2130,13 +2202,45 @@
                 container.appendChild(btn);
             });
         }
+        // Segunda pieza del mismo mecanismo de calibración: una opinión directa
+        // sobre el diagnóstico completo (no solo la tipología), para ir viendo
+        // con el uso real si el resultado en conjunto se siente acertado.
+        function submitDiagnosticFeedback(positive) {
+            if (!currentResults) return;
+            db.diagnosticFeedback.push({
+                positive,
+                typology: currentResults.typology.type,
+                overallScore: currentResults.overallScore,
+                plan: currentResults.plan,
+                date: new Date().toISOString()
+            });
+            saveDB();
+            document.getElementById('feedbackUpBtn').classList.toggle('selected', positive);
+            document.getElementById('feedbackDownBtn').classList.toggle('selected', !positive);
+            document.getElementById('feedbackQuestion').style.display = 'none';
+            document.getElementById('feedbackButtons').style.display = 'none';
+            document.getElementById('feedbackThanks').style.display = 'inline';
+        }
+
         function acceptTypologyCorrection() {
             const selected = document.querySelector('.typology-option.selected');
             if (selected) {
                 const type = selected.dataset.type;
+                const previous = currentResults ? currentResults.typology : null;
                 correctedTypology = { type, name: typologies[type].name, confidence: 100, justification: "Tipología corregida manualmente por el usuario." };
                 document.getElementById('typologyModal').classList.remove('active');
                 if (currentResults) {
+                    // Registro de calibración: cada corrección real es un dato de
+                    // "el sistema predijo X, el usuario dijo Y". Con el tiempo esto
+                    // es lo que permite ajustar los umbrales del árbol de reglas
+                    // contra casos reales, en vez de una sola sesión de calibración.
+                    if (previous && previous.type !== type) {
+                        db.typologyFeedback.push({
+                            predicted: previous.type, predictedConfidence: previous.confidence,
+                            corrected: type, date: new Date().toISOString()
+                        });
+                        saveDB();
+                    }
                     currentResults.typology = correctedTypology;
                     // El diagnóstico completo (ventajas/desventajas, análisis estructural)
                     // se regenera con la tipología corregida — si solo actualizáramos la
