@@ -399,7 +399,7 @@
     .control-row span { min-width: 35px; text-align: right; font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-muted); }
 
     .admin-tabs { display: flex; gap: 0.4rem; margin-bottom: 1.1rem; flex-wrap: wrap; }
-    .admin-tab-btn { flex: 1; min-width: 100px; padding: 0.55rem 0.5rem; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; color: var(--text-muted); font-size: 0.74rem; font-weight: 600; cursor: pointer; transition: all 0.15s; font-family: inherit; }
+    .admin-tab-btn { flex: 1; min-width: 100px; padding: 0.55rem 0.5rem; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; color: var(--text-muted); font-size: 1.48rem; font-weight: 600; cursor: pointer; transition: all 0.15s; font-family: inherit; }
     .admin-tab-btn.active { background: var(--cyan); color: var(--bg); border-color: var(--cyan); }
     .admin-tab-panel { display: none; }
     .admin-tab-panel.active { display: block; }
@@ -905,7 +905,7 @@
         <!-- MI CUENTA (modal) -->
         <div id="profileModal" class="modal">
             <div class="card" style="max-width:440px; width:92%; max-height:88vh; max-height:88dvh; overflow-y:auto;">
-                <h2 class="card-title">👤 Mi cuenta <button class="btn btn-sm" id="closeProfileBtn" style="margin-left:auto;">Cerrar</button></h2>
+                <h2 class="card-title">Mi cuenta <button class="btn btn-sm" id="closeProfileBtn" style="margin-left:auto;">Cerrar</button></h2>
                 <div class="form-group">
                     <label for="userWhatsapp">WhatsApp (para solicitar créditos)</label>
                     <div class="whatsapp-input-group">
@@ -977,12 +977,12 @@
         <!-- ADMIN PANEL -->
         <div class="admin-panel" id="adminPanel">
             <div class="card">
-                <h2 class="card-title">🛠️ Panel de Administración</h2>
+                <h2 class="card-title">Panel de Administración</h2>
 
                 <div class="admin-tabs">
-                    <button class="admin-tab-btn active" data-tab="creditos">💳 Créditos</button>
-                    <button class="admin-tab-btn" data-tab="valoracion">🎯 Valoración de Marca</button>
-                    <button class="admin-tab-btn" data-tab="metricas">📊 Métricas</button>
+                    <button class="admin-tab-btn active" data-tab="creditos">Créditos</button>
+                    <button class="admin-tab-btn" data-tab="valoracion">Valoración de Marca</button>
+                    <button class="admin-tab-btn" data-tab="metricas">Métricas</button>
                 </div>
 
                 <div class="admin-tab-panel active" id="adminTabCreditos">
@@ -998,19 +998,19 @@
                         <button class="btn btn-accent" onclick="acreditarCreditos(60)">+60 créditos</button>
                         <button class="btn btn-primary" onclick="acreditarCreditos(100)">+100 créditos</button>
                     </div>
-                    <h3 style="font-family:var(--font-mono); font-size:0.8rem; margin-top:1.1rem; margin-bottom:0.5rem; text-transform:uppercase; letter-spacing:0.04em; color:var(--text-muted);">Historial</h3>
+                    <h3 style="font-family:var(--font-mono); font-size:1.6rem; margin-top:1.1rem; margin-bottom:0.5rem; text-transform:uppercase; letter-spacing:0.04em; color:var(--text-muted);">Historial</h3>
                     <div id="creditHistory"></div>
                 </div>
 
                 <div class="admin-tab-panel" id="adminTabValoracion">
-                    <h3 style="font-family:var(--font-mono); font-size:0.8rem; margin-bottom:0.25rem; text-transform:uppercase; letter-spacing:0.04em; color:var(--text-muted);">Correcciones de tipología</h3>
+                    <h3 style="font-family:var(--font-mono); font-size:1.6rem; margin-bottom:0.25rem; text-transform:uppercase; letter-spacing:0.04em; color:var(--text-muted);">Correcciones de tipología</h3>
                     <p style="font-size:0.72rem; color:var(--text-muted); margin-bottom:0.5rem; text-transform:none;">Cada vez que alguien corrige la tipología, queda el registro de qué predijo el sistema contra qué dijo la persona.</p>
                     <div id="typologyFeedbackList"></div>
 
-                    <h3 style="font-family:var(--font-mono); font-size:0.8rem; margin-top:1.4rem; margin-bottom:0.25rem; text-transform:uppercase; letter-spacing:0.04em; color:var(--text-muted);">Opinión sobre el diagnóstico</h3>
+                    <h3 style="font-family:var(--font-mono); font-size:1.6rem; margin-top:1.4rem; margin-bottom:0.25rem; text-transform:uppercase; letter-spacing:0.04em; color:var(--text-muted);">Opinión sobre el diagnóstico</h3>
                     <div id="diagnosticFeedbackList"></div>
 
-                    <h3 style="font-family:var(--font-mono); font-size:0.8rem; margin-top:1.6rem; margin-bottom:0.25rem; text-transform:uppercase; letter-spacing:0.04em; color:var(--text-muted);">Banco de Calibración</h3>
+                    <h3 style="font-family:var(--font-mono); font-size:1.6rem; margin-top:1.6rem; margin-bottom:0.25rem; text-transform:uppercase; letter-spacing:0.04em; color:var(--text-muted);">Banco de Calibración</h3>
                     <p style="font-size:0.72rem; color:var(--text-muted); margin-bottom:0.75rem; text-transform:none;">Sube o fotografía marcas reales y decide tú mismo la tipología correcta y los puntajes — esto es la verdad de referencia con la que se afina el motor.</p>
 
                     <div class="form-group">
@@ -1029,7 +1029,7 @@
                         <div class="typology-select-grid" id="calibTypologyGrid"></div>
                     </div>
 
-                    <h4 style="font-size:0.75rem; color:var(--text-muted); margin:0.9rem 0 0.4rem; text-transform:uppercase; letter-spacing:0.03em;">Tu evaluación experta (1–10)</h4>
+                    <h4 style="font-size:1.5rem; color:var(--text-muted); margin:0.9rem 0 0.4rem; text-transform:uppercase; letter-spacing:0.03em;">Tu evaluación experta (1–10)</h4>
                     <div class="control-row"><label for="calibColorCount">Cantidad de colores percibidos</label><input type="range" id="calibColorCount" min="1" max="10" value="5"><span class="control-val" id="calibColorCountVal">5</span></div>
                     <div class="control-row"><label for="calibCalidad">Calidad gráfica</label><input type="range" id="calibCalidad" min="1" max="10" value="5"><span class="control-val" id="calibCalidadVal">5</span></div>
                     <div class="control-row"><label for="calibRepro">Reproducibilidad</label><input type="range" id="calibRepro" min="1" max="10" value="5"><span class="control-val" id="calibReproVal">5</span></div>
@@ -1061,7 +1061,7 @@
         <div id="mainApp" style="display:none;">
 
             <div class="card secondary-card" id="recognitionCard">
-                <h2 class="card-title">🎯 Test de Reconocimiento <span class="credit-badge">+1 crédito</span></h2>
+                <h2 class="card-title">Test de Reconocimiento <span class="credit-badge">+1 crédito</span></h2>
                 <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:0.75rem; text-transform:none;">Adivina la tipología de una marca real del banco de calibración. Cada muestra solo se puede responder una vez.</p>
                 <div id="recognitionContent">
                     <button class="btn btn-accent" id="recognitionStartBtn">Comenzar</button>
@@ -1069,7 +1069,7 @@
             </div>
 
             <div class="card" id="uploadCard">
-                <h2 class="card-title"><span class="step-badge">1</span>🖼️ Imagen de la Marca</h2>
+                <h2 class="card-title"><span class="step-badge">1</span>Imagen de la Marca</h2>
                 <div class="upload-area" id="uploadArea" role="button" tabindex="0" aria-label="Subir imagen de la marca, hacer clic o soltar un archivo aquí">
                     <p class="upload-text">Sube tu imagen aquí</p>
                     <p class="upload-subtext">Arrastra, suelta o haz clic para seleccionar</p>
@@ -1125,7 +1125,7 @@
             </div>
 
             <div class="card" id="contextCard">
-                <h2 class="card-title"><span class="step-badge">2</span>📋 Contexto de la Marca</h2>
+                <h2 class="card-title"><span class="step-badge">2</span>Contexto de la Marca</h2>
                 <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:1rem; text-transform:none;">
                     Estos datos identifican la marca en el informe y te dan contexto propio para leer el resultado. Los 6 indicadores automáticos se calculan solo sobre la imagen — sector, competencia y atributos aún no alimentan el puntaje (son parte de los 8 indicadores del marco de Chaves y Belluccia que todavía no medimos).
                 </p>
@@ -1194,19 +1194,19 @@
                 </div>
 
                 <div class="card radar-card">
-                    <h2 class="card-title">📡 Radar de Indicadores <span class="eyebrow">Vista principal del informe</span></h2>
+                    <h2 class="card-title">Radar de Indicadores <span class="eyebrow">Vista principal del informe</span></h2>
                     <div class="radar-container">
                         <div class="radar-chart" id="radarChart"></div>
                     </div>
                 </div>
 
                 <div class="card">
-                    <h2 class="card-title">📊 Resumen por Categoría</h2>
+                    <h2 class="card-title">Resumen por Categoría</h2>
                     <div id="categoryBars"></div>
                 </div>
 
                 <div class="card">
-                    <h2 class="card-title">🏷️ Tipología Marcaria</h2>
+                    <h2 class="card-title">Tipología Marcaria</h2>
                     <div class="typology-name" id="typologyName">--</div>
                     <p class="typology-justification" id="typologyJustification"></p>
                     <p class="confidence-label">Confianza: <span id="typologyConfidence">--</span></p>
@@ -1216,19 +1216,19 @@
                 </div>
 
                 <div class="card">
-                    <h2 class="card-title">🎨 Paleta Cromática</h2>
+                    <h2 class="card-title">Paleta Cromática</h2>
                     <p style="font-size:0.76rem; color:var(--text-muted); margin-bottom:0.6rem; text-transform:none;">Toca un color para excluirlo si no pertenece a la marca (ruido de foto, sombra, fondo) y recalcula.</p>
                     <div class="color-palette" id="colorPalette"></div>
                     <p class="color-classification" id="colorClassification"></p>
                     <button class="btn btn-sm btn-accent" id="recalcPaletteBtn" style="margin-top:0.6rem; display:none;">Recalcular con esta paleta</button>
-                    <button class="btn btn-sm" id="colorblindToggleBtn" style="margin-top:0.5rem;">👁️ Simular daltonismo</button>
+                    <button class="btn btn-sm" id="colorblindToggleBtn" style="margin-top:0.5rem;">Simular daltonismo</button>
                     <div id="colorblindSimulation" style="display:none; margin-top:0.7rem;"></div>
                 </div>
 
                 <div id="resultsGrid"></div>
 
                 <div class="card">
-                    <h2 class="card-title">📝 Diagnóstico General <span class="eyebrow">Basado en la imagen cargada</span></h2>
+                    <h2 class="card-title">Diagnóstico General <span class="eyebrow">Basado en la imagen cargada</span></h2>
                     <div class="diagnostic-text" id="diagnosticText"></div>
                     <div class="diagnostic-feedback" id="diagnosticFeedback">
                         <span id="feedbackQuestion">¿Te parece acertado este diagnóstico?</span>
@@ -1241,7 +1241,7 @@
                 </div>
 
                 <div class="card" id="exportCard">
-                    <h2 class="card-title">🖨️ Exportar Informe</h2>
+                    <h2 class="card-title">Exportar Informe</h2>
                     <div class="btn-group">
                         <button class="btn btn-primary" id="exportCompleteBtn">Imprimir informe completo</button>
                         <button class="btn" id="exportSummaryBtn">Imprimir informe resumido</button>
@@ -1250,7 +1250,7 @@
                 </div>
 
                 <div class="card">
-                    <h2 class="card-title">✅ Terminar</h2>
+                    <h2 class="card-title">Terminar</h2>
                     <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:0.75rem; text-transform:none;">Guarda este diagnóstico en tu historial (lo verás en "Mi cuenta"), o ciérralo sin guardar para empezar de nuevo.</p>
                     <div class="btn-group">
                         <button class="btn btn-primary" id="saveHistoryBtn" style="flex:1;">Guardar en mi historial</button>
@@ -1405,7 +1405,7 @@
             const isHidden = container.style.display === 'none';
             if (isHidden && currentResults) renderColorblindSimulation(currentResults.colors.palette);
             container.style.display = isHidden ? 'block' : 'none';
-            btn.textContent = isHidden ? '👁️ Ocultar simulación' : '👁️ Simular daltonismo';
+            btn.textContent = isHidden ? 'Ocultar simulación' : 'Simular daltonismo';
         }
         function renderColorblindSimulation(palette) {
             const container = document.getElementById('colorblindSimulation');
@@ -2215,7 +2215,7 @@
             currentResults = null;
             excludedColorIndices = new Set();
             document.getElementById('colorblindSimulation').style.display = 'none';
-            document.getElementById('colorblindToggleBtn').textContent = '👁️ Simular daltonismo';
+            document.getElementById('colorblindToggleBtn').textContent = 'Simular daltonismo';
             document.getElementById('resultsSection').classList.remove('active');
             document.getElementById('uploadCard').scrollIntoView({ behavior: 'smooth' });
             if (!silent) notify('Listo para un nuevo análisis');
