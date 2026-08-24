@@ -3,6 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#15130F">
+<link rel="icon" href="/icons/icon-192.png">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="BrandTest">
 <title>BrandTest — Valoración Técnica de Marcas Gráficas</title>
 <meta name="description" content="Instrumento de medición de marcas gráficas: 6 de los 14 indicadores de calidad de Chaves y Belluccia (2003), tipología marcaria y análisis cromático, calculados sobre la imagen real.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -166,6 +173,14 @@
         justify-content: space-between;
         gap: 0.5rem;
     }
+    .step-badge {
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 22px; height: 22px; border-radius: 50%;
+        background: var(--cyan); color: var(--bg);
+        font-family: var(--font-mono); font-size: 0.72rem; font-weight: 700;
+        flex-shrink: 0;
+    }
+    #uploadCard, #contextCard { border-left: 3px solid var(--cyan); }
     .card-title .eyebrow {
         font-family: var(--font-mono);
         font-size: 0.65rem;
@@ -382,6 +397,23 @@
     .control-row label { min-width: 110px; font-size: 0.75rem; color: var(--text-muted); font-weight: 500; text-transform: none; }
     .control-row input[type="range"] { flex: 1; accent-color: var(--cyan); }
     .control-row span { min-width: 35px; text-align: right; font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-muted); }
+
+    .admin-tabs { display: flex; gap: 0.4rem; margin-bottom: 1.1rem; flex-wrap: wrap; }
+    .admin-tab-btn { flex: 1; min-width: 100px; padding: 0.55rem 0.5rem; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; color: var(--text-muted); font-size: 0.74rem; font-weight: 600; cursor: pointer; transition: all 0.15s; font-family: inherit; }
+    .admin-tab-btn.active { background: var(--cyan); color: var(--bg); border-color: var(--cyan); }
+    .admin-tab-panel { display: none; }
+    .admin-tab-panel.active { display: block; }
+    .metrics-grid-admin { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.6rem; }
+    @media (min-width: 600px) { .metrics-grid-admin { grid-template-columns: repeat(3, 1fr); } }
+    .metric-stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 0.85rem 0.6rem; text-align: center; }
+    .metric-stat-value { font-family: var(--font-mono); font-size: 1.5rem; font-weight: 700; color: var(--cyan); }
+    .metric-stat-label { font-size: 0.66rem; color: var(--text-muted); margin-top: 0.25rem; text-transform: uppercase; letter-spacing: 0.02em; }
+    .secondary-card { border: 1px dashed var(--border); background: rgba(0,185,198,0.03); }
+    .credit-badge { display: inline-block; font-family: var(--font-mono); font-size: 0.62rem; font-weight: 700; color: var(--bg); background: var(--yellow); padding: 0.15rem 0.5rem; border-radius: 20px; vertical-align: middle; margin-left: 0.5rem; text-transform: uppercase; letter-spacing: 0.03em; }
+    .colorblind-row { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.5rem; flex-wrap: wrap; }
+    .colorblind-row-label { font-size: 0.7rem; color: var(--text-muted); min-width: 150px; }
+    .colorblind-swatches { display: flex; gap: 0.3rem; }
+    .colorblind-swatch { width: 28px; height: 28px; border-radius: 5px; border: 1px solid var(--border); }
     .control-row select { flex: 1; padding: 0.4rem; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-family: inherit; font-size: 0.8rem; }
 
     .loading { display: none; text-align: center; padding: 2rem; }
@@ -873,7 +905,7 @@
         <!-- MI CUENTA (modal) -->
         <div id="profileModal" class="modal">
             <div class="card" style="max-width:440px; width:92%; max-height:88vh; max-height:88dvh; overflow-y:auto;">
-                <h2 class="card-title">Mi cuenta <button class="btn btn-sm" id="closeProfileBtn" style="margin-left:auto;">Cerrar</button></h2>
+                <h2 class="card-title">👤 Mi cuenta <button class="btn btn-sm" id="closeProfileBtn" style="margin-left:auto;">Cerrar</button></h2>
                 <div class="form-group">
                     <label for="userWhatsapp">WhatsApp (para solicitar créditos)</label>
                     <div class="whatsapp-input-group">
@@ -945,53 +977,81 @@
         <!-- ADMIN PANEL -->
         <div class="admin-panel" id="adminPanel">
             <div class="card">
-                <h2 class="card-title">Panel de Administración</h2>
-                <div class="note-box">
-                    Créditos y login ya son reales (Supabase) — funcionan entre dispositivos. Este botón ahora llama a una función de servidor segura para acreditar; la primera vez te va a pedir tu contraseña de administrador.
+                <h2 class="card-title">🛠️ Panel de Administración</h2>
+
+                <div class="admin-tabs">
+                    <button class="admin-tab-btn active" data-tab="creditos">💳 Créditos</button>
+                    <button class="admin-tab-btn" data-tab="valoracion">🎯 Valoración de Marca</button>
+                    <button class="admin-tab-btn" data-tab="metricas">📊 Métricas</button>
                 </div>
-                <div class="form-group" style="margin-top:0.9rem;">
-                    <label>Número de WhatsApp del usuario</label>
-                    <input type="tel" class="credit-input" id="adminWhatsapp" placeholder="Ej: 59171234567">
-                </div>
-                <div class="btn-group">
-                    <button class="btn btn-success" onclick="acreditarCreditos(20)">+20 créditos</button>
-                    <button class="btn btn-accent" onclick="acreditarCreditos(60)">+60 créditos</button>
-                    <button class="btn btn-primary" onclick="acreditarCreditos(100)">+100 créditos</button>
-                </div>
-                <h3 style="font-family:var(--font-mono); font-size:0.8rem; margin-top:1.1rem; margin-bottom:0.5rem; text-transform:uppercase; letter-spacing:0.04em; color:var(--text-muted);">Historial</h3>
-                <div id="creditHistory"></div>
 
-                <h3 style="font-family:var(--font-mono); font-size:0.8rem; margin-top:1.4rem; margin-bottom:0.25rem; text-transform:uppercase; letter-spacing:0.04em; color:var(--text-muted);">Calibración — correcciones de tipología</h3>
-                <p style="font-size:0.72rem; color:var(--text-muted); margin-bottom:0.5rem; text-transform:none;">Cada vez que alguien corrige la tipología, queda el registro de qué predijo el sistema contra qué dijo la persona. Esto es lo que permite ajustar el árbol de reglas con casos reales.</p>
-                <div id="typologyFeedbackList"></div>
-
-                <h3 style="font-family:var(--font-mono); font-size:0.8rem; margin-top:1.4rem; margin-bottom:0.25rem; text-transform:uppercase; letter-spacing:0.04em; color:var(--text-muted);">Calibración — opinión sobre el diagnóstico</h3>
-                <div id="diagnosticFeedbackList"></div>
-
-                <h3 style="font-family:var(--font-mono); font-size:0.8rem; margin-top:1.6rem; margin-bottom:0.25rem; text-transform:uppercase; letter-spacing:0.04em; color:var(--text-muted);">Banco de Calibración</h3>
-                <p style="font-size:0.72rem; color:var(--text-muted); margin-bottom:0.75rem; text-transform:none;">Sube o fotografía marcas reales y decide tú mismo la tipología correcta — esto es la verdad de referencia con la que se afina el motor.</p>
-
-                <div class="form-group">
-                    <input type="file" id="calibImageInput" accept="image/*" capture="environment" style="display:none;">
-                    <button class="btn btn-sm btn-accent" id="calibSelectBtn">Subir o tomar foto</button>
-                    <div id="calibPreviewWrap" style="display:none; margin-top:0.6rem;">
-                        <img id="calibPreview" alt="Vista previa de la muestra" style="max-width:150px; max-height:150px; border-radius:8px; border:1px solid var(--border); display:block;">
+                <div class="admin-tab-panel active" id="adminTabCreditos">
+                    <div class="note-box">
+                        Créditos y login ya son reales (Supabase) — funcionan entre dispositivos. Este botón llama a una función de servidor segura para acreditar; la primera vez te va a pedir tu contraseña de administrador.
                     </div>
+                    <div class="form-group" style="margin-top:0.9rem;">
+                        <label>Número de WhatsApp del usuario</label>
+                        <input type="tel" class="credit-input" id="adminWhatsapp" placeholder="Ej: 59171234567">
+                    </div>
+                    <div class="btn-group">
+                        <button class="btn btn-success" onclick="acreditarCreditos(20)">+20 créditos</button>
+                        <button class="btn btn-accent" onclick="acreditarCreditos(60)">+60 créditos</button>
+                        <button class="btn btn-primary" onclick="acreditarCreditos(100)">+100 créditos</button>
+                    </div>
+                    <h3 style="font-family:var(--font-mono); font-size:0.8rem; margin-top:1.1rem; margin-bottom:0.5rem; text-transform:uppercase; letter-spacing:0.04em; color:var(--text-muted);">Historial</h3>
+                    <div id="creditHistory"></div>
                 </div>
-                <div class="form-group">
-                    <label for="calibBrandName">Nombre de marca (opcional)</label>
-                    <input type="text" class="form-input" id="calibBrandName">
+
+                <div class="admin-tab-panel" id="adminTabValoracion">
+                    <h3 style="font-family:var(--font-mono); font-size:0.8rem; margin-bottom:0.25rem; text-transform:uppercase; letter-spacing:0.04em; color:var(--text-muted);">Correcciones de tipología</h3>
+                    <p style="font-size:0.72rem; color:var(--text-muted); margin-bottom:0.5rem; text-transform:none;">Cada vez que alguien corrige la tipología, queda el registro de qué predijo el sistema contra qué dijo la persona.</p>
+                    <div id="typologyFeedbackList"></div>
+
+                    <h3 style="font-family:var(--font-mono); font-size:0.8rem; margin-top:1.4rem; margin-bottom:0.25rem; text-transform:uppercase; letter-spacing:0.04em; color:var(--text-muted);">Opinión sobre el diagnóstico</h3>
+                    <div id="diagnosticFeedbackList"></div>
+
+                    <h3 style="font-family:var(--font-mono); font-size:0.8rem; margin-top:1.6rem; margin-bottom:0.25rem; text-transform:uppercase; letter-spacing:0.04em; color:var(--text-muted);">Banco de Calibración</h3>
+                    <p style="font-size:0.72rem; color:var(--text-muted); margin-bottom:0.75rem; text-transform:none;">Sube o fotografía marcas reales y decide tú mismo la tipología correcta y los puntajes — esto es la verdad de referencia con la que se afina el motor.</p>
+
+                    <div class="form-group">
+                        <input type="file" id="calibImageInput" accept="image/*" capture="environment" style="display:none;">
+                        <button class="btn btn-sm btn-accent" id="calibSelectBtn">Subir o tomar foto</button>
+                        <div id="calibPreviewWrap" style="display:none; margin-top:0.6rem;">
+                            <img id="calibPreview" alt="Vista previa de la muestra" style="max-width:150px; max-height:150px; border-radius:8px; border:1px solid var(--border); display:block;">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="calibBrandName">Nombre de marca (opcional)</label>
+                        <input type="text" class="form-input" id="calibBrandName">
+                    </div>
+                    <div class="form-group">
+                        <label>Tipología correcta</label>
+                        <div class="typology-select-grid" id="calibTypologyGrid"></div>
+                    </div>
+
+                    <h4 style="font-size:0.75rem; color:var(--text-muted); margin:0.9rem 0 0.4rem; text-transform:uppercase; letter-spacing:0.03em;">Tu evaluación experta (1–10)</h4>
+                    <div class="control-row"><label for="calibColorCount">Cantidad de colores percibidos</label><input type="range" id="calibColorCount" min="1" max="10" value="5"><span class="control-val" id="calibColorCountVal">5</span></div>
+                    <div class="control-row"><label for="calibCalidad">Calidad gráfica</label><input type="range" id="calibCalidad" min="1" max="10" value="5"><span class="control-val" id="calibCalidadVal">5</span></div>
+                    <div class="control-row"><label for="calibRepro">Reproducibilidad</label><input type="range" id="calibRepro" min="1" max="10" value="5"><span class="control-val" id="calibReproVal">5</span></div>
+                    <div class="control-row"><label for="calibLegib">Legibilidad</label><input type="range" id="calibLegib" min="1" max="10" value="5"><span class="control-val" id="calibLegibVal">5</span></div>
+                    <div class="control-row"><label for="calibIntel">Inteligibilidad</label><input type="range" id="calibIntel" min="1" max="10" value="5"><span class="control-val" id="calibIntelVal">5</span></div>
+                    <div class="control-row"><label for="calibVoca">Vocatividad</label><input type="range" id="calibVoca" min="1" max="10" value="5"><span class="control-val" id="calibVocaVal">5</span></div>
+                    <div class="control-row"><label for="calibPregnancia">Pregnancia</label><input type="range" id="calibPregnancia" min="1" max="10" value="5"><span class="control-val" id="calibPregnanciaVal">5</span></div>
+                    <div class="control-row"><label for="calibOverall">Puntaje general (holístico)</label><input type="range" id="calibOverall" min="1" max="10" value="5"><span class="control-val" id="calibOverallVal">5</span></div>
+                    <div class="control-row"><label for="calibConfidence">Tu confianza en este juicio</label><input type="range" id="calibConfidence" min="1" max="5" value="3"><span class="control-val" id="calibConfidenceVal">3</span></div>
+
+                    <div class="form-group" style="margin-top:0.6rem;">
+                        <label for="calibNotes">Notas (opcional)</label>
+                        <textarea class="form-textarea" id="calibNotes" placeholder="Cualquier detalle que valga la pena registrar"></textarea>
+                    </div>
+                    <button class="btn btn-primary" id="calibSaveBtn" style="width:100%;">Guardar muestra</button>
+                    <div id="calibList" style="margin-top:0.85rem;"></div>
                 </div>
-                <div class="form-group">
-                    <label>Tipología correcta</label>
-                    <div class="typology-select-grid" id="calibTypologyGrid"></div>
+
+                <div class="admin-tab-panel" id="adminTabMetricas">
+                    <p style="font-size:0.72rem; color:var(--text-muted); margin-bottom:0.75rem; text-transform:none;">Salud general del proyecto — no solo créditos, también uso real y participación en calibración.</p>
+                    <div id="metricsGrid" class="metrics-grid-admin">Cargando…</div>
                 </div>
-                <div class="form-group">
-                    <label for="calibNotes">Notas (opcional)</label>
-                    <textarea class="form-textarea" id="calibNotes" placeholder="Cualquier detalle que valga la pena registrar"></textarea>
-                </div>
-                <button class="btn btn-primary" id="calibSaveBtn" style="width:100%;">Guardar muestra</button>
-                <div id="calibList" style="margin-top:0.85rem;"></div>
 
                 <button class="btn btn-sm" onclick="closeAdmin()" style="margin-top:0.85rem;">Cerrar panel</button>
             </div>
@@ -1000,8 +1060,16 @@
         <!-- MAIN APP -->
         <div id="mainApp" style="display:none;">
 
+            <div class="card secondary-card" id="recognitionCard">
+                <h2 class="card-title">🎯 Test de Reconocimiento <span class="credit-badge">+1 crédito</span></h2>
+                <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:0.75rem; text-transform:none;">Adivina la tipología de una marca real del banco de calibración. Cada muestra solo se puede responder una vez.</p>
+                <div id="recognitionContent">
+                    <button class="btn btn-accent" id="recognitionStartBtn">Comenzar</button>
+                </div>
+            </div>
+
             <div class="card" id="uploadCard">
-                <h2 class="card-title">Imagen de la Marca</h2>
+                <h2 class="card-title"><span class="step-badge">1</span>🖼️ Imagen de la Marca</h2>
                 <div class="upload-area" id="uploadArea" role="button" tabindex="0" aria-label="Subir imagen de la marca, hacer clic o soltar un archivo aquí">
                     <p class="upload-text">Sube tu imagen aquí</p>
                     <p class="upload-subtext">Arrastra, suelta o haz clic para seleccionar</p>
@@ -1057,7 +1125,7 @@
             </div>
 
             <div class="card" id="contextCard">
-                <h2 class="card-title">Contexto de la Marca</h2>
+                <h2 class="card-title"><span class="step-badge">2</span>📋 Contexto de la Marca</h2>
                 <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:1rem; text-transform:none;">
                     Estos datos identifican la marca en el informe y te dan contexto propio para leer el resultado. Los 6 indicadores automáticos se calculan solo sobre la imagen — sector, competencia y atributos aún no alimentan el puntaje (son parte de los 8 indicadores del marco de Chaves y Belluccia que todavía no medimos).
                 </p>
@@ -1126,19 +1194,19 @@
                 </div>
 
                 <div class="card radar-card">
-                    <h2 class="card-title">Radar de Indicadores <span class="eyebrow">Vista principal del informe</span></h2>
+                    <h2 class="card-title">📡 Radar de Indicadores <span class="eyebrow">Vista principal del informe</span></h2>
                     <div class="radar-container">
                         <div class="radar-chart" id="radarChart"></div>
                     </div>
                 </div>
 
                 <div class="card">
-                    <h2 class="card-title">Resumen por Categoría</h2>
+                    <h2 class="card-title">📊 Resumen por Categoría</h2>
                     <div id="categoryBars"></div>
                 </div>
 
                 <div class="card">
-                    <h2 class="card-title">Tipología Marcaria</h2>
+                    <h2 class="card-title">🏷️ Tipología Marcaria</h2>
                     <div class="typology-name" id="typologyName">--</div>
                     <p class="typology-justification" id="typologyJustification"></p>
                     <p class="confidence-label">Confianza: <span id="typologyConfidence">--</span></p>
@@ -1148,17 +1216,19 @@
                 </div>
 
                 <div class="card">
-                    <h2 class="card-title">Paleta Cromática</h2>
+                    <h2 class="card-title">🎨 Paleta Cromática</h2>
                     <p style="font-size:0.76rem; color:var(--text-muted); margin-bottom:0.6rem; text-transform:none;">Toca un color para excluirlo si no pertenece a la marca (ruido de foto, sombra, fondo) y recalcula.</p>
                     <div class="color-palette" id="colorPalette"></div>
                     <p class="color-classification" id="colorClassification"></p>
                     <button class="btn btn-sm btn-accent" id="recalcPaletteBtn" style="margin-top:0.6rem; display:none;">Recalcular con esta paleta</button>
+                    <button class="btn btn-sm" id="colorblindToggleBtn" style="margin-top:0.5rem;">👁️ Simular daltonismo</button>
+                    <div id="colorblindSimulation" style="display:none; margin-top:0.7rem;"></div>
                 </div>
 
                 <div id="resultsGrid"></div>
 
                 <div class="card">
-                    <h2 class="card-title">Diagnóstico General <span class="eyebrow">Basado en la imagen cargada</span></h2>
+                    <h2 class="card-title">📝 Diagnóstico General <span class="eyebrow">Basado en la imagen cargada</span></h2>
                     <div class="diagnostic-text" id="diagnosticText"></div>
                     <div class="diagnostic-feedback" id="diagnosticFeedback">
                         <span id="feedbackQuestion">¿Te parece acertado este diagnóstico?</span>
@@ -1171,7 +1241,7 @@
                 </div>
 
                 <div class="card" id="exportCard">
-                    <h2 class="card-title">Exportar Informe</h2>
+                    <h2 class="card-title">🖨️ Exportar Informe</h2>
                     <div class="btn-group">
                         <button class="btn btn-primary" id="exportCompleteBtn">Imprimir informe completo</button>
                         <button class="btn" id="exportSummaryBtn">Imprimir informe resumido</button>
@@ -1180,7 +1250,7 @@
                 </div>
 
                 <div class="card">
-                    <h2 class="card-title">Terminar</h2>
+                    <h2 class="card-title">✅ Terminar</h2>
                     <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:0.75rem; text-transform:none;">Guarda este diagnóstico en tu historial (lo verás en "Mi cuenta"), o ciérralo sin guardar para empezar de nuevo.</p>
                     <div class="btn-group">
                         <button class="btn btn-primary" id="saveHistoryBtn" style="flex:1;">Guardar en mi historial</button>
@@ -1309,6 +1379,51 @@
         // Capa 3 de la mejora de color: recalcula Reproducibilidad y el
         // puntaje general usando solo los colores que el usuario no marcó
         // como ajenos a la marca — sin volver a correr todo el análisis.
+
+        // Simulación de daltonismo — aproximación con matrices Brettel/Viénot
+        // aplicadas directo en sRGB (el mismo enfoque que usan la mayoría de
+        // los simuladores web). No reemplaza una prueba clínica, pero es
+        // matemática real y consistente, no una estimación al ojo.
+        const colorblindMatrices = {
+            protanopia: [[0.567, 0.433, 0], [0.558, 0.442, 0], [0, 0.242, 0.758]],
+            deuteranopia: [[0.625, 0.375, 0], [0.7, 0.3, 0], [0, 0.3, 0.7]],
+            tritanopia: [[0.95, 0.05, 0], [0, 0.433, 0.567], [0, 0.475, 0.525]]
+        };
+        function simulateColorblind(rgb, type) {
+            const m = colorblindMatrices[type];
+            const r = rgb.r / 255, g = rgb.g / 255, b = rgb.b / 255;
+            const clamp = v => Math.round(Math.max(0, Math.min(1, v)) * 255);
+            return {
+                r: clamp(m[0][0] * r + m[0][1] * g + m[0][2] * b),
+                g: clamp(m[1][0] * r + m[1][1] * g + m[1][2] * b),
+                b: clamp(m[2][0] * r + m[2][1] * g + m[2][2] * b)
+            };
+        }
+        function toggleColorblindSimulation() {
+            const container = document.getElementById('colorblindSimulation');
+            const btn = document.getElementById('colorblindToggleBtn');
+            const isHidden = container.style.display === 'none';
+            if (isHidden && currentResults) renderColorblindSimulation(currentResults.colors.palette);
+            container.style.display = isHidden ? 'block' : 'none';
+            btn.textContent = isHidden ? '👁️ Ocultar simulación' : '👁️ Simular daltonismo';
+        }
+        function renderColorblindSimulation(palette) {
+            const container = document.getElementById('colorblindSimulation');
+            const types = [
+                { key: 'protanopia', label: 'Protanopia (rojo-verde)' },
+                { key: 'deuteranopia', label: 'Deuteranopia (rojo-verde)' },
+                { key: 'tritanopia', label: 'Tritanopia (azul-amarillo)' }
+            ];
+            container.innerHTML = types.map(t => {
+                const swatches = palette.map(c => {
+                    const sim = simulateColorblind(c.rgb, t.key);
+                    const hex = '#' + [sim.r, sim.g, sim.b].map(v => v.toString(16).padStart(2, '0')).join('');
+                    return '<div class="colorblind-swatch" style="background:' + hex + ';"></div>';
+                }).join('');
+                return '<div class="colorblind-row"><span class="colorblind-row-label">' + t.label + '</span><div class="colorblind-swatches">' + swatches + '</div></div>';
+            }).join('') + '<p style="font-size:0.66rem; color:var(--text-muted); margin-top:0.4rem; text-transform:none;">Aproximación (matrices Brettel/Viénot) — no reemplaza una prueba clínica de daltonismo.</p>';
+        }
+
         function recalculatePalette() {
             if (!currentResults) return;
             const d = currentResults.rawData;
@@ -1566,10 +1681,131 @@
             renderCalibrationFeedback();
             renderCalibTypologyGrid();
             renderCalibrationSamples();
+            renderAdminMetrics();
         }
         function closeAdmin() {
             document.getElementById('adminPanel').classList.remove('active');
             document.getElementById('mainApp').style.display = 'block';
+        }
+
+        /* ---- Test de reconocimiento (cualquier usuario, +1 crédito) ---- */
+        let currentRecognitionSample = null;
+
+        async function startRecognitionTest() {
+            if (isGuest) { notify('Crea una cuenta gratis para participar en el test de reconocimiento'); return; }
+            const container = document.getElementById('recognitionContent');
+            container.innerHTML = '<p style="font-size:0.78rem; color:var(--text-muted);">Cargando…</p>';
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (!session) { notify('Tu sesión expiró — vuelve a entrar'); return; }
+            try {
+                const res = await fetch('/api/get-recognition-sample', {
+                    method: 'POST',
+                    headers: { 'Authorization': 'Bearer ' + session.access_token }
+                });
+                const data = await res.json();
+                if (!res.ok) { container.innerHTML = '<p style="font-size:0.78rem; color:var(--text-muted);">' + (data.error || 'No se pudo cargar una muestra.') + '</p>'; return; }
+                if (data.done) { container.innerHTML = '<p style="font-size:0.78rem; color:var(--text-muted);">' + data.message + '</p>'; return; }
+                currentRecognitionSample = data.sampleId;
+                renderRecognitionGuessUI(data.imageUrl);
+            } catch (e) {
+                container.innerHTML = '<p style="font-size:0.78rem; color:var(--text-muted);">Error de conexión: ' + e.message + '</p>';
+            }
+        }
+
+        function renderRecognitionGuessUI(imageUrl) {
+            const container = document.getElementById('recognitionContent');
+            container.innerHTML = '<img src="' + imageUrl + '" alt="Marca a identificar" style="max-width:220px; max-height:220px; border-radius:8px; border:1px solid var(--border); display:block; margin-bottom:0.8rem;">'
+                + '<p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:0.5rem;">¿Qué tipología es esta marca?</p>'
+                + '<div class="typology-select-grid" id="recognitionTypologyGrid"></div>'
+                + '<button class="btn btn-primary" id="recognitionSubmitBtn" style="width:100%; margin-top:0.8rem;">Enviar respuesta</button>';
+
+            const grid = document.getElementById('recognitionTypologyGrid');
+            grid.innerHTML = Object.keys(typologies).map(key =>
+                '<div class="typology-select-card" data-type="' + key + '"><div class="tsc-name">' + typologies[key].name + '</div><div class="tsc-desc">' + typologies[key].description + '</div></div>'
+            ).join('');
+            grid.querySelectorAll('.typology-select-card').forEach(card => {
+                card.addEventListener('click', () => {
+                    grid.querySelectorAll('.typology-select-card').forEach(c => c.classList.remove('selected'));
+                    card.classList.add('selected');
+                });
+            });
+            document.getElementById('recognitionSubmitBtn').addEventListener('click', submitRecognitionAnswer);
+        }
+
+        async function submitRecognitionAnswer() {
+            const selected = document.querySelector('#recognitionTypologyGrid .typology-select-card.selected');
+            if (!selected) { notify('Selecciona una tipología'); return; }
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (!session) { notify('Tu sesión expiró — vuelve a entrar'); return; }
+            try {
+                const res = await fetch('/api/submit-recognition', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.access_token },
+                    body: JSON.stringify({ sampleId: currentRecognitionSample, answeredType: selected.dataset.type })
+                });
+                const data = await res.json();
+                if (!res.ok) { notify(data.error || 'No se pudo enviar la respuesta'); return; }
+                currentUser.credits = data.remainingCredits;
+                updateUserUI();
+                const container = document.getElementById('recognitionContent');
+                const resultColor = data.correct ? 'var(--cyan)' : 'var(--magenta)';
+                const resultText = data.correct ? '¡Correcto!' : 'No exactamente — era ' + (typologies[data.correctType] ? typologies[data.correctType].name : data.correctType);
+                container.innerHTML = '<p style="font-size:0.85rem; color:' + resultColor + '; font-weight:600;">' + resultText + '</p>'
+                    + '<p style="font-size:0.75rem; color:var(--text-muted); margin:0.3rem 0 0.8rem;">+1 crédito — saldo: ' + data.remainingCredits + '</p>'
+                    + '<button class="btn btn-accent" id="recognitionNextBtn">Otra marca</button>';
+                document.getElementById('recognitionNextBtn').addEventListener('click', startRecognitionTest);
+            } catch (e) {
+                notify('Error de conexión: ' + e.message);
+            }
+        }
+
+        function switchAdminTab(tabName) {
+            document.querySelectorAll('.admin-tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tabName));
+            document.querySelectorAll('.admin-tab-panel').forEach(p => p.classList.remove('active'));
+            document.getElementById('adminTab' + tabName.charAt(0).toUpperCase() + tabName.slice(1)).classList.add('active');
+        }
+
+        // Panel de Métricas: salud general del proyecto — usuarios, créditos
+        // otorgados vs. gastados, análisis realizados, y participación real
+        // en el banco de calibración y el test de reconocimiento.
+        async function renderAdminMetrics() {
+            const container = document.getElementById('metricsGrid');
+            container.textContent = 'Cargando…';
+            try {
+                const [usersRes, grantedRes, spentRes, diagRes, calibRes, recogRes] = await Promise.all([
+                    supabaseClient.from('users').select('total_analyses', { count: 'exact' }),
+                    supabaseClient.from('credit_history').select('amount'),
+                    supabaseClient.from('credit_usage_log').select('amount'),
+                    supabaseClient.from('diagnosis_history').select('id', { count: 'exact', head: true }),
+                    supabaseClient.from('calibration_samples').select('id', { count: 'exact', head: true }),
+                    supabaseClient.from('recognition_responses').select('correct')
+                ]);
+                const totalUsers = usersRes.count ?? (usersRes.data || []).length;
+                const totalAnalyses = (usersRes.data || []).reduce((s, u) => s + (u.total_analyses || 0), 0);
+                const creditsGranted = (grantedRes.data || []).reduce((s, r) => s + r.amount, 0);
+                const creditsSpent = (spentRes.data || []).reduce((s, r) => s + r.amount, 0);
+                const savedDiagnoses = diagRes.count ?? 0;
+                const calibSamples = calibRes.count ?? 0;
+                const recognitionTotal = (recogRes.data || []).length;
+                const recognitionCorrect = (recogRes.data || []).filter(r => r.correct).length;
+                const recognitionAccuracy = recognitionTotal ? Math.round((recognitionCorrect / recognitionTotal) * 100) : 0;
+
+                const stats = [
+                    { label: 'Usuarios registrados', value: totalUsers },
+                    { label: 'Análisis realizados', value: totalAnalyses },
+                    { label: 'Créditos otorgados', value: creditsGranted },
+                    { label: 'Créditos gastados', value: creditsSpent },
+                    { label: 'Diagnósticos guardados', value: savedDiagnoses },
+                    { label: 'Muestras en banco de calibración', value: calibSamples },
+                    { label: 'Respuestas en test de reconocimiento', value: recognitionTotal },
+                    { label: 'Aciertos en test de reconocimiento', value: recognitionAccuracy + '%' }
+                ];
+                container.innerHTML = stats.map(s =>
+                    '<div class="metric-stat-card"><div class="metric-stat-value">' + s.value + '</div><div class="metric-stat-label">' + s.label + '</div></div>'
+                ).join('');
+            } catch (e) {
+                container.innerHTML = '<div class="history-item">No se pudieron cargar las métricas: ' + e.message + '</div>';
+            }
         }
 
         /* ---- Banco de calibración (solo admin) ---- */
@@ -1624,7 +1860,16 @@
                 image_path: fileName,
                 typology: type,
                 brand_name: brandName || null,
-                notes: notes || null
+                notes: notes || null,
+                color_count_manual: Number(document.getElementById('calibColorCount').value),
+                calidad_grafica_manual: Number(document.getElementById('calibCalidad').value),
+                reproducibilidad_manual: Number(document.getElementById('calibRepro').value),
+                legibilidad_manual: Number(document.getElementById('calibLegib').value),
+                inteligibilidad_manual: Number(document.getElementById('calibIntel').value),
+                vocatividad_manual: Number(document.getElementById('calibVoca').value),
+                pregnancia_manual: Number(document.getElementById('calibPregnancia').value),
+                overall_manual: Number(document.getElementById('calibOverall').value),
+                confidence_manual: Number(document.getElementById('calibConfidence').value)
             });
             if (insertError) { notify('No se pudo guardar la muestra: ' + insertError.message); return; }
 
@@ -1635,6 +1880,12 @@
             document.getElementById('calibBrandName').value = '';
             document.getElementById('calibNotes').value = '';
             document.querySelectorAll('#calibTypologyGrid .typology-select-card').forEach(c => c.classList.remove('selected'));
+            ['calibColorCount','calibCalidad','calibRepro','calibLegib','calibIntel','calibVoca','calibPregnancia','calibOverall'].forEach(id => {
+                document.getElementById(id).value = 5;
+                document.getElementById(id + 'Val').textContent = '5';
+            });
+            document.getElementById('calibConfidence').value = 3;
+            document.getElementById('calibConfidenceVal').textContent = '3';
             renderCalibrationSamples();
         }
 
@@ -1855,6 +2106,16 @@
             document.getElementById('calibSelectBtn').addEventListener('click', () => document.getElementById('calibImageInput').click());
             document.getElementById('calibImageInput').addEventListener('change', (e) => { if (e.target.files[0]) handleCalibFile(e.target.files[0]); });
             document.getElementById('calibSaveBtn').addEventListener('click', saveCalibrationSample);
+            document.querySelectorAll('.admin-tab-btn').forEach(btn => {
+                btn.addEventListener('click', () => switchAdminTab(btn.dataset.tab));
+            });
+            document.getElementById('recognitionStartBtn').addEventListener('click', startRecognitionTest);
+            document.getElementById('colorblindToggleBtn').addEventListener('click', toggleColorblindSimulation);
+            ['calibColorCount','calibCalidad','calibRepro','calibLegib','calibIntel','calibVoca','calibPregnancia','calibOverall','calibConfidence'].forEach(id => {
+                document.getElementById(id).addEventListener('input', (e) => {
+                    document.getElementById(id + 'Val').textContent = e.target.value;
+                });
+            });
             document.getElementById('closeDiagnosticBtn').addEventListener('click', resetApp);
             document.getElementById('feedbackUpBtn').addEventListener('click', () => submitDiagnosticFeedback(true));
             document.getElementById('feedbackDownBtn').addEventListener('click', () => submitDiagnosticFeedback(false));
@@ -1953,6 +2214,8 @@
             renderTypologySelector();
             currentResults = null;
             excludedColorIndices = new Set();
+            document.getElementById('colorblindSimulation').style.display = 'none';
+            document.getElementById('colorblindToggleBtn').textContent = '👁️ Simular daltonismo';
             document.getElementById('resultsSection').classList.remove('active');
             document.getElementById('uploadCard').scrollIntoView({ behavior: 'smooth' });
             if (!silent) notify('Listo para un nuevo análisis');
@@ -2552,8 +2815,22 @@
         async function analyzeBrand() {
             if (!selectedImage) { notify('Selecciona una imagen primero'); return; }
             const plan = document.getElementById('planSelect').value;
-            const check = checkPlanPermissions(plan);
+
+            // El permiso y el descuento de créditos ya NO se deciden en el
+            // navegador — credits/plan/total_analyses/last_free_analysis están
+            // protegidas a nivel de columna en la base de datos, así que solo
+            // la función de servidor (con la sesión real verificada) puede
+            // tocarlas. El único caso que se resuelve localmente es el de
+            // invitado, que no tiene cuenta ni fila que proteger.
+            const unlimited = TESTING_MODE || currentUser.is_admin;
+            let check = { allowed: true };
+            if (isGuest) {
+                check = checkGuestPermission(plan);
+            } else if (!unlimited) {
+                check = await consumeCreditServer(plan);
+            }
             if (!check.allowed) { notify(check.message); return; }
+
             excludedColorIndices = new Set();
             document.getElementById('loadingIndicator').classList.add('active');
             document.getElementById('resultsSection').classList.remove('active');
@@ -2584,21 +2861,8 @@
             if (!scores) scores = evaluateIndicatorsReal(d);
             if (!typology) typology = detectTypologyReal(d);
 
-            const unlimited = TESTING_MODE || currentUser.is_admin;
-            if (isGuest) {
-                if (!unlimited) localStorage.setItem('brandtest_guest_last_use', new Date().toISOString());
-            } else if (plan !== 'libre') {
-                const cost = plan === 'estandar' ? 10 : 20;
-                if (!unlimited) {
-                    currentUser.credits -= cost;
-                    await supabaseClient.from('users').update({ credits: currentUser.credits, total_analyses: currentUser.total_analyses + 1, plan }).eq('id', currentUser.id);
-                }
-                currentUser.total_analyses++; currentUser.plan = plan;
-                updateUserUI();
-            } else if (!unlimited) {
-                currentUser.last_free_analysis = new Date().toISOString();
-                await supabaseClient.from('users').update({ last_free_analysis: currentUser.last_free_analysis }).eq('id', currentUser.id);
-            }
+            if (isGuest && !unlimited) localStorage.setItem('brandtest_guest_last_use', new Date().toISOString());
+
             const results = {
                 typology,
                 colors: { count: d.colorCount, palette: d.palette, classification: classifyColors(d.colorCount) },
@@ -2619,27 +2883,41 @@
             }, 350);
         }
 
-        function checkPlanPermissions(plan) {
-            if (TESTING_MODE || currentUser.is_admin) return { allowed: true };
-            if (isGuest) {
-                if (plan !== 'libre') return { allowed: false, message: 'Como invitado solo puedes usar el plan Libre — crea una cuenta gratis para Estándar o Pro' };
-                const last = localStorage.getItem('brandtest_guest_last_use');
-                if (last) {
-                    const hoursSince = (Date.now() - new Date(last).getTime()) / (1000*60*60);
-                    if (hoursSince < 48) return { allowed: false, message: 'Espera ' + Math.ceil(48-hoursSince) + ' horas para otro análisis sin registro, o crea una cuenta' };
-                }
-                return { allowed: true };
+        // Único chequeo que sigue viviendo en el navegador — el invitado no
+        // tiene cuenta ni fila en la base de datos que proteger, así que no
+        // hay nada sensible que mover al servidor en este caso.
+        function checkGuestPermission(plan) {
+            if (plan !== 'libre') return { allowed: false, message: 'Como invitado solo puedes usar el plan Libre — crea una cuenta gratis para Estándar o Pro' };
+            const last = localStorage.getItem('brandtest_guest_last_use');
+            if (last) {
+                const hoursSince = (Date.now() - new Date(last).getTime()) / (1000 * 60 * 60);
+                if (hoursSince < 48) return { allowed: false, message: 'Espera ' + Math.ceil(48 - hoursSince) + ' horas para otro análisis sin registro, o crea una cuenta' };
             }
-            if (plan === 'libre') {
-                if (currentUser.last_free_analysis) {
-                    const hoursSince = (Date.now() - new Date(currentUser.last_free_analysis).getTime()) / (1000*60*60);
-                    if (hoursSince < 12) return { allowed: false, message: 'Espera ' + Math.ceil(12-hoursSince) + ' horas para otro análisis libre' };
-                }
-                return { allowed: true };
-            }
-            const cost = plan === 'estandar' ? 10 : 20;
-            if (currentUser.credits < cost) return { allowed: false, message: 'Créditos insuficientes. Necesitas ' + cost + '. Saldo: ' + currentUser.credits };
             return { allowed: true };
+        }
+
+        // Llama a la función de servidor que verifica la sesión real y
+        // descuenta créditos de forma segura. Actualiza currentUser con lo
+        // que el servidor confirme — nunca con lo que el navegador calculó.
+        async function consumeCreditServer(plan) {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (!session) return { allowed: false, message: 'Tu sesión expiró — vuelve a entrar' };
+            try {
+                const res = await fetch('/api/consume-credit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.access_token },
+                    body: JSON.stringify({ plan })
+                });
+                const data = await res.json();
+                if (!res.ok) return { allowed: false, message: data.error || 'No se pudo verificar tu plan' };
+                if (data.remainingCredits !== undefined) currentUser.credits = data.remainingCredits;
+                if (data.plan) currentUser.plan = data.plan;
+                if (data.totalAnalyses !== undefined) currentUser.total_analyses = data.totalAnalyses;
+                updateUserUI();
+                return { allowed: true };
+            } catch (e) {
+                return { allowed: false, message: 'Error de conexión al verificar tu plan: ' + e.message };
+            }
         }
 
         function animateScoreCount(el, target) {
@@ -2901,6 +3179,14 @@
             n.textContent = message;
             n.classList.add('show');
             setTimeout(() => n.classList.remove('show'), 3000);
+        }
+
+        // Registro del service worker — habilita "instalar" BrandTest desde
+        // el navegador (ícono en pantalla de inicio, pantalla completa).
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js').catch(() => {});
+            });
         }
     </script>
 
