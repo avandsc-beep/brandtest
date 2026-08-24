@@ -2669,10 +2669,32 @@
             }
         };
 
+        // Indicadores "de piso" — Chaves y Belluccia los tratan como
+        // técnicos o perceptuales, donde un puntaje bajo es objetivamente
+        // deficiente (no hay lectura legítima en la que sea deseable que
+        // estén bajos). Vocatividad queda fuera a propósito: el propio
+        // libro (2.12) advierte que su nivel adecuado depende de la
+        // identidad de cada marca — Mercedes-Benz es poco vocativa y es
+        // una marca excelente; Texaco es muy vocativa y también lo es. Un
+        // puntaje alto en Vocatividad no es evidencia de buena calidad, así
+        // que no debe poder "tapar" fallas reales en los demás indicadores.
+        const gateIndicatorKeys = ['calidad_grafica', 'reproducibilidad', 'legibilidad', 'inteligibilidad', 'pregnancia'];
+        const GATE_MARGIN = 20;
+
+        function getGateInfo(scores) {
+            let worstKey = null, worstScore = 101;
+            gateIndicatorKeys.forEach(k => {
+                if (scores[k] && scores[k].score < worstScore) { worstScore = scores[k].score; worstKey = k; }
+            });
+            return { worstKey, worstScore, cap: worstScore + GATE_MARGIN };
+        }
+
         function calculateOverall(scores) {
             let total = 0, weightSum = 0;
             Object.keys(scores).forEach(k => { total += scores[k].score * evaluableIndicators[k].weight; weightSum += evaluableIndicators[k].weight; });
-            return Math.round(total / weightSum);
+            const weightedAvg = total / weightSum;
+            const gate = getGateInfo(scores);
+            return Math.round(Math.min(weightedAvg, gate.cap));
         }
 
         function diagnosticVerdict(score) {
@@ -2723,12 +2745,17 @@
             const t = typologies[typology.type];
             const overall = calculateOverall(scores);
             const verdict = diagnosticVerdict(overall);
+            const gate = getGateInfo(scores);
+            const gateApplied = overall < Math.round(Object.keys(scores).reduce((s,k) => s + scores[k].score*evaluableIndicators[k].weight, 0) / Object.keys(scores).reduce((s,k) => s + evaluableIndicators[k].weight, 0)) - 0.5;
             let html = '';
 
             html += '<h3>Veredicto General</h3>';
             html += '<p><strong style="color:' + verdict.color + ';">' + verdict.title + '</strong> — puntuación general ' + overall + '%.</p>';
             html += '<p>' + verdict.description + '</p>';
             html += '<p><strong>Recomendación general:</strong> ' + verdict.recommendation + '</p>';
+            if (gateApplied) {
+                html += '<div class="note-box" style="border-color:var(--magenta);">El puntaje general está limitado por <strong>' + evaluableIndicators[gate.worstKey].name + '</strong> (' + gate.worstScore + '%), el indicador más bajo — un problema grave en un solo indicador no se puede "diluir" promediándolo con los demás. Vocatividad queda fuera de este límite a propósito: su nivel adecuado depende de la identidad de cada marca (Chaves y Belluccia, 2.12), así que un puntaje alto ahí no compensa fallas reales en otro lado.</div>';
+            }
             html += '<div class="note-box">Este informe es una herramienta de apoyo objetiva, construida a partir de mediciones reales sobre la imagen cargada (contraste, geometría, color, composición)' + (aiSummary ? ', complementadas con la lectura visual de un modelo de IA' : '') + '. No reemplaza el criterio de un profesional del diseño: la lectura final de una marca gráfica involucra contexto, estrategia de marca y decisiones que escapan a lo que una imagen por sí sola puede informar.<br><br>Los seis indicadores medidos forman parte del marco de 14 indicadores de calidad de marca desarrollado por Norberto Chaves y Raúl Belluccia (2003). Este informe mide 6 de los 14; los ocho restantes (suficiencia, vigencia, ajuste tipológico, corrección estilística, compatibilidad semántica, versatilidad, singularidad, declinabilidad) requieren contexto adicional que este instrumento no evalúa.</div>';
 
             if (aiSummary) {
