@@ -242,3 +242,64 @@ create policy "usuarios ven sus propias respuestas"
 create policy "admins ven todas las respuestas de reconocimiento"
   on public.recognition_responses for select
   using (exists (select 1 from public.users u where u.id = auth.uid() and u.is_admin = true));
+
+-- ============================================================
+-- PARTE 10 — Corrección de recursión infinita en políticas de admin
+-- Las políticas que preguntaban "¿es admin?" consultando de nuevo la
+-- tabla users (dentro de una política DE la tabla users) causaban
+-- recursión infinita en Postgres, y eso rompía silenciosamente el
+-- panel admin completo. Esta función evita el bucle: verifica
+-- is_admin saltándose las políticas de seguridad para esa consulta
+-- puntual (SECURITY DEFINER), sin abrir ningún hueco — solo la usan
+-- las políticas mismas, nunca el navegador directamente.
+-- ============================================================
+
+create or replace function public.is_admin_user()
+returns boolean
+language sql
+security definer
+stable
+as $$
+  select coalesce((select is_admin from public.users where id = auth.uid()), false);
+$$;
+
+drop policy if exists "admins ven todos los usuarios" on public.users;
+drop policy if exists "solo admins ven las muestras de calibracion" on public.calibration_samples;
+drop policy if exists "solo admins guardan muestras de calibracion" on public.calibration_samples;
+drop policy if exists "admins suben imagenes de calibracion" on storage.objects;
+drop policy if exists "admins leen imagenes de calibracion" on storage.objects;
+drop policy if exists "admins ven todo el historial de diagnosticos" on public.diagnosis_history;
+drop policy if exists "admins ven el uso de creditos" on public.credit_usage_log;
+drop policy if exists "admins ven todas las respuestas de reconocimiento" on public.recognition_responses;
+
+create policy "admins ven todos los usuarios"
+  on public.users for select
+  using (public.is_admin_user());
+
+create policy "solo admins ven las muestras de calibracion"
+  on public.calibration_samples for select
+  using (public.is_admin_user());
+
+create policy "solo admins guardan muestras de calibracion"
+  on public.calibration_samples for insert
+  with check (public.is_admin_user());
+
+create policy "admins suben imagenes de calibracion"
+  on storage.objects for insert
+  with check (bucket_id = 'calibration-images' and public.is_admin_user());
+
+create policy "admins leen imagenes de calibracion"
+  on storage.objects for select
+  using (bucket_id = 'calibration-images' and public.is_admin_user());
+
+create policy "admins ven todo el historial de diagnosticos"
+  on public.diagnosis_history for select
+  using (public.is_admin_user());
+
+create policy "admins ven el uso de creditos"
+  on public.credit_usage_log for select
+  using (public.is_admin_user());
+
+create policy "admins ven todas las respuestas de reconocimiento"
+  on public.recognition_responses for select
+  using (public.is_admin_user());
