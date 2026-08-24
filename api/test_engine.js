@@ -42,7 +42,8 @@ const wrapped = new Function(
         detectTypologyReal, getInitials, floodFillComponents, groupComponents,
         evaluableIndicators, typologies, categories,
         rgbToLab, deltaE, mergePerceptualColors,
-        simulateColorblind
+        simulateColorblind,
+        getGateInfo, gateIndicatorKeys
     };`
 );
 const M = wrapped(documentStub, windowStub, navigatorStub, localStorageStub);
@@ -225,6 +226,40 @@ assert(M.getInitials('') === '?', 'nombre vacío debe devolver "?"');
     const red = { r: 220, g: 20, b: 20 };
     const redProt = M.simulateColorblind(red, 'protanopia');
     assert(redProt.r < red.r, 'un rojo saturado debe perder intensidad de rojo bajo protanopia');
+}
+
+// ============================================================
+// 11. Veto de indicadores de piso — el caso real que motivó esto:
+// una marca recargada de color y efectos que sacaba ~90% de puntaje
+// general pese a tener Reproducibilidad hundida por exceso de color.
+// ============================================================
+{
+    // Caso real: Reproducibilidad hundida (exceso de color), los otros
+    // 5 indicadores casi perfectos. Antes del veto, el promedio daba ~90.
+    const casoRecargado = {
+        calidad_grafica: { score: 95 },
+        reproducibilidad: { score: 46 }, // 9 colores detectados
+        legibilidad: { score: 95 },
+        inteligibilidad: { score: 90 },
+        vocatividad: { score: 97 }, // alta saturación — no debe salvar el puntaje
+        pregnancia: { score: 94 }
+    };
+    const overallRecargado = M.calculateOverall(casoRecargado);
+    assert(overallRecargado <= 66, 'con Reproducibilidad en 46, el veto debe limitar el general a 46+20=66 como máximo, dio ' + overallRecargado);
+    assert(overallRecargado < 70, 'el veto debe impedir que este caso caiga en "No necesita ajustes" (≥70), dio ' + overallRecargado);
+
+    const gate = M.getGateInfo(casoRecargado);
+    assert(gate.worstKey === 'reproducibilidad', 'el indicador de piso más bajo debe identificarse como reproducibilidad, dio ' + gate.worstKey);
+    assert(!M.gateIndicatorKeys.includes('vocatividad'), 'vocatividad no debe ser indicador de piso (Chaves y Belluccia 2.12: su nivel adecuado es contextual)');
+
+    // Caso control: todos los indicadores parejos y altos — el veto no
+    // debe activarse ni bajar el puntaje cuando no hay ningún problema real.
+    const casoParejo = {
+        calidad_grafica: { score: 88 }, reproducibilidad: { score: 85 }, legibilidad: { score: 90 },
+        inteligibilidad: { score: 87 }, vocatividad: { score: 40 }, pregnancia: { score: 89 }
+    };
+    const overallParejo = M.calculateOverall(casoParejo);
+    approx(overallParejo, 80, 1, 'sin ningún indicador de piso bajo, el veto no debe alterar el promedio ponderado, dio ' + overallParejo);
 }
 
 // ============================================================
