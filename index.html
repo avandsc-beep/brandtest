@@ -968,6 +968,31 @@
                 <h3 style="font-family:var(--font-mono); font-size:0.8rem; margin-top:1.4rem; margin-bottom:0.25rem; text-transform:uppercase; letter-spacing:0.04em; color:var(--text-muted);">Calibración — opinión sobre el diagnóstico</h3>
                 <div id="diagnosticFeedbackList"></div>
 
+                <h3 style="font-family:var(--font-mono); font-size:0.8rem; margin-top:1.6rem; margin-bottom:0.25rem; text-transform:uppercase; letter-spacing:0.04em; color:var(--text-muted);">Banco de Calibración</h3>
+                <p style="font-size:0.72rem; color:var(--text-muted); margin-bottom:0.75rem; text-transform:none;">Sube o fotografía marcas reales y decide tú mismo la tipología correcta — esto es la verdad de referencia con la que se afina el motor.</p>
+
+                <div class="form-group">
+                    <input type="file" id="calibImageInput" accept="image/*" capture="environment" style="display:none;">
+                    <button class="btn btn-sm btn-accent" id="calibSelectBtn">Subir o tomar foto</button>
+                    <div id="calibPreviewWrap" style="display:none; margin-top:0.6rem;">
+                        <img id="calibPreview" alt="Vista previa de la muestra" style="max-width:150px; max-height:150px; border-radius:8px; border:1px solid var(--border); display:block;">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="calibBrandName">Nombre de marca (opcional)</label>
+                    <input type="text" class="form-input" id="calibBrandName">
+                </div>
+                <div class="form-group">
+                    <label>Tipología correcta</label>
+                    <div class="typology-select-grid" id="calibTypologyGrid"></div>
+                </div>
+                <div class="form-group">
+                    <label for="calibNotes">Notas (opcional)</label>
+                    <textarea class="form-textarea" id="calibNotes" placeholder="Cualquier detalle que valga la pena registrar"></textarea>
+                </div>
+                <button class="btn btn-primary" id="calibSaveBtn" style="width:100%;">Guardar muestra</button>
+                <div id="calibList" style="margin-top:0.85rem;"></div>
+
                 <button class="btn btn-sm" onclick="closeAdmin()" style="margin-top:0.85rem;">Cerrar panel</button>
             </div>
         </div>
@@ -1304,7 +1329,7 @@
             };
             currentResults.colors.classification = classifyColors(effectiveCount) + (excludedColorIndices.size ? ' — paleta curada manualmente' : '');
             currentResults.overallScore = calculateOverall(currentResults.indicators);
-            currentResults.diagnostic = generateDiagnostic(currentResults.typology, currentResults.indicators, d, currentResults.plan);
+            currentResults.diagnostic = generateDiagnostic(currentResults.typology, currentResults.indicators, d, currentResults.plan, currentResults.aiSummary);
             displayResults(currentResults);
             notify('Paleta recalculada — Reproducibilidad y puntaje general actualizados');
         }
@@ -1539,10 +1564,89 @@
             document.getElementById('mainApp').style.display = 'none';
             renderCreditHistory();
             renderCalibrationFeedback();
+            renderCalibTypologyGrid();
+            renderCalibrationSamples();
         }
         function closeAdmin() {
             document.getElementById('adminPanel').classList.remove('active');
             document.getElementById('mainApp').style.display = 'block';
+        }
+
+        /* ---- Banco de calibración (solo admin) ---- */
+        let calibImageData = null;
+
+        function renderCalibTypologyGrid() {
+            const grid = document.getElementById('calibTypologyGrid');
+            let html = '';
+            Object.keys(typologies).forEach(key => {
+                html += '<div class="typology-select-card" data-type="' + key + '"><div class="tsc-name">' + typologies[key].name + '</div><div class="tsc-desc">' + typologies[key].description + '</div></div>';
+            });
+            grid.innerHTML = html;
+            grid.querySelectorAll('.typology-select-card').forEach(card => {
+                card.addEventListener('click', () => {
+                    grid.querySelectorAll('.typology-select-card').forEach(c => c.classList.remove('selected'));
+                    card.classList.add('selected');
+                });
+            });
+        }
+
+        function handleCalibFile(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                calibImageData = e.target.result;
+                document.getElementById('calibPreview').src = calibImageData;
+                document.getElementById('calibPreviewWrap').style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        async function saveCalibrationSample() {
+            const selected = document.querySelector('#calibTypologyGrid .typology-select-card.selected');
+            if (!calibImageData) { notify('Sube o toma una foto primero'); return; }
+            if (!selected) { notify('Selecciona cuál es la tipología correcta'); return; }
+            const type = selected.dataset.type;
+            const brandName = document.getElementById('calibBrandName').value.trim();
+            const notes = document.getElementById('calibNotes').value.trim();
+
+            const match = calibImageData.match(/^data:([^;]+);base64,/);
+            const mediaType = match ? match[1] : 'image/png';
+            const ext = mediaType.split('/')[1] || 'png';
+            const fileName = currentUser.id + '/' + Date.now() + '_' + Math.random().toString(36).slice(2) + '.' + ext;
+            const blob = await (await fetch(calibImageData)).blob();
+
+            const { error: uploadError } = await supabaseClient.storage
+                .from('calibration-images')
+                .upload(fileName, blob, { contentType: mediaType });
+            if (uploadError) { notify('No se pudo subir la imagen: ' + uploadError.message); return; }
+
+            const { error: insertError } = await supabaseClient.from('calibration_samples').insert({
+                admin_id: currentUser.id,
+                image_path: fileName,
+                typology: type,
+                brand_name: brandName || null,
+                notes: notes || null
+            });
+            if (insertError) { notify('No se pudo guardar la muestra: ' + insertError.message); return; }
+
+            notify('Muestra guardada en el banco de calibración');
+            calibImageData = null;
+            document.getElementById('calibPreviewWrap').style.display = 'none';
+            document.getElementById('calibImageInput').value = '';
+            document.getElementById('calibBrandName').value = '';
+            document.getElementById('calibNotes').value = '';
+            document.querySelectorAll('#calibTypologyGrid .typology-select-card').forEach(c => c.classList.remove('selected'));
+            renderCalibrationSamples();
+        }
+
+        async function renderCalibrationSamples() {
+            const container = document.getElementById('calibList');
+            const { data, error } = await supabaseClient.from('calibration_samples').select('*').order('created_at', { ascending: false }).limit(50);
+            if (error) { container.innerHTML = '<div class="history-item">No se pudo cargar el banco de calibración.</div>'; return; }
+            if (!data || !data.length) { container.innerHTML = '<div class="history-item">Todavía no hay muestras guardadas.</div>'; return; }
+            container.innerHTML = '<div class="history-item" style="color:var(--text);">' + data.length + ' muestra(s) guardada(s)</div>'
+                + data.map(s => '<div class="history-item">' + (s.brand_name || 'Sin nombre') + ' — '
+                    + (typologies[s.typology] ? typologies[s.typology].name : s.typology) + ' — '
+                    + new Date(s.created_at).toLocaleDateString('es-BO') + '</div>').join('');
         }
 
         function renderCalibrationFeedback() {
@@ -1748,6 +1852,9 @@
             document.getElementById('newAnalysisBtn').addEventListener('click', resetApp);
             document.getElementById('saveHistoryBtn').addEventListener('click', saveDiagnosisToHistory);
             document.getElementById('recalcPaletteBtn').addEventListener('click', recalculatePalette);
+            document.getElementById('calibSelectBtn').addEventListener('click', () => document.getElementById('calibImageInput').click());
+            document.getElementById('calibImageInput').addEventListener('change', (e) => { if (e.target.files[0]) handleCalibFile(e.target.files[0]); });
+            document.getElementById('calibSaveBtn').addEventListener('click', saveCalibrationSample);
             document.getElementById('closeDiagnosticBtn').addEventListener('click', resetApp);
             document.getElementById('feedbackUpBtn').addEventListener('click', () => submitDiagnosticFeedback(true));
             document.getElementById('feedbackDownBtn').addEventListener('click', () => submitDiagnosticFeedback(false));
@@ -2349,7 +2456,7 @@
             return html;
         }
 
-        function generateDiagnostic(typology, scores, d, plan) {
+        function generateDiagnostic(typology, scores, d, plan, aiSummary) {
             const t = typologies[typology.type];
             const overall = calculateOverall(scores);
             const verdict = diagnosticVerdict(overall);
@@ -2359,7 +2466,12 @@
             html += '<p><strong style="color:' + verdict.color + ';">' + verdict.title + '</strong> — puntuación general ' + overall + '%.</p>';
             html += '<p>' + verdict.description + '</p>';
             html += '<p><strong>Recomendación general:</strong> ' + verdict.recommendation + '</p>';
-            html += '<div class="note-box">Este informe es una herramienta de apoyo objetiva, construida a partir de mediciones reales sobre la imagen cargada (contraste, geometría, color, composición). No reemplaza el criterio de un profesional del diseño: la lectura final de una marca gráfica involucra contexto, estrategia de marca y decisiones que escapan a lo que una imagen por sí sola puede informar.<br><br>Los seis indicadores medidos forman parte del marco de 14 indicadores de calidad de marca desarrollado por Norberto Chaves y Raúl Belluccia (2003). Este informe mide 6 de los 14; los ocho restantes (suficiencia, vigencia, ajuste tipológico, corrección estilística, compatibilidad semántica, versatilidad, singularidad, declinabilidad) requieren contexto adicional que este instrumento no evalúa.</div>';
+            html += '<div class="note-box">Este informe es una herramienta de apoyo objetiva, construida a partir de mediciones reales sobre la imagen cargada (contraste, geometría, color, composición)' + (aiSummary ? ', complementadas con la lectura visual de un modelo de IA' : '') + '. No reemplaza el criterio de un profesional del diseño: la lectura final de una marca gráfica involucra contexto, estrategia de marca y decisiones que escapan a lo que una imagen por sí sola puede informar.<br><br>Los seis indicadores medidos forman parte del marco de 14 indicadores de calidad de marca desarrollado por Norberto Chaves y Raúl Belluccia (2003). Este informe mide 6 de los 14; los ocho restantes (suficiencia, vigencia, ajuste tipológico, corrección estilística, compatibilidad semántica, versatilidad, singularidad, declinabilidad) requieren contexto adicional que este instrumento no evalúa.</div>';
+
+            if (aiSummary) {
+                html += '<h3>Lectura Visual (IA)</h3>';
+                html += '<p>' + aiSummary + '</p>';
+            }
 
             html += '<h3>Análisis Estructural</h3>';
             html += '<p>La marca fue clasificada como <strong>' + t.name + '</strong>. ' + t.description + '</p>';
@@ -2405,6 +2517,38 @@
             return html;
         }
 
+        // Llama a la función de servidor que analiza la imagen con Claude
+        // (visión), mandando también las métricas reales ya calculadas como
+        // base objetiva. Si algo falla (sin llave configurada aún, red caída,
+        // etc.) devuelve null — quien llama debe caer al motor de reglas.
+        async function callClaudeAnalysis(d) {
+            const imgSrc = adjustedImage || selectedImage;
+            const match = imgSrc.match(/^data:([^;]+);base64,(.+)$/);
+            if (!match) return null;
+            const mediaType = match[1], base64 = match[2];
+            const metrics = { contrast: d.contrast, symmetryScore: d.symmetryScore, edgeComplexity: d.edgeComplexity, componentCount: d.componentCount, colorCount: d.colorCount, inkRatio: d.inkRatio };
+            const context = {
+                brandName: document.getElementById('brandName').value.trim(),
+                sector: document.getElementById('sector').value.trim(),
+                competitors: document.getElementById('competitors').value.trim(),
+                attributes: document.getElementById('brandAttributes').value.trim()
+            };
+            const res = await fetch('/api/analyze-brand', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ imageBase64: base64, mediaType, metrics, context })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Error de análisis con IA');
+            return data.analysis;
+        }
+
+        function buildScoresFromAI(ai) {
+            const keys = ['calidad_grafica', 'reproducibilidad', 'legibilidad', 'inteligibilidad', 'vocatividad', 'pregnancia'];
+            const scores = {};
+            keys.forEach(k => { scores[k] = { score: ai[k], justification: ai[k + '_justification'] }; });
+            return scores;
+        }
+
         async function analyzeBrand() {
             if (!selectedImage) { notify('Selecciona una imagen primero'); return; }
             const plan = document.getElementById('planSelect').value;
@@ -2414,13 +2558,32 @@
             document.getElementById('loadingIndicator').classList.add('active');
             document.getElementById('resultsSection').classList.remove('active');
             const d = await analyzeImage();
-            const typology = correctedTypology || (selectedTypologyOverride ? {
+
+            const manualTypology = correctedTypology || (selectedTypologyOverride ? {
                 type: selectedTypologyOverride,
                 name: typologies[selectedTypologyOverride].name,
                 confidence: 100,
                 justification: "Tipología confirmada por el usuario antes del análisis — el diagnóstico se construye sobre esta elección."
-            } : detectTypologyReal(d));
-            const scores = evaluateIndicatorsReal(d);
+            } : null);
+
+            let typology = manualTypology;
+            let scores = null;
+            let aiSummary = null;
+            try {
+                const ai = await callClaudeAnalysis(d);
+                if (ai) {
+                    if (!manualTypology) {
+                        typology = { type: ai.typology, name: typologies[ai.typology].name, confidence: ai.typology_confidence, justification: ai.typology_justification };
+                    }
+                    scores = buildScoresFromAI(ai);
+                    aiSummary = ai.diagnostic_summary;
+                }
+            } catch (e) {
+                console.warn('Análisis con IA no disponible, se usa el motor de reglas:', e.message);
+            }
+            if (!scores) scores = evaluateIndicatorsReal(d);
+            if (!typology) typology = detectTypologyReal(d);
+
             const unlimited = TESTING_MODE || currentUser.is_admin;
             if (isGuest) {
                 if (!unlimited) localStorage.setItem('brandtest_guest_last_use', new Date().toISOString());
@@ -2441,7 +2604,8 @@
                 colors: { count: d.colorCount, palette: d.palette, classification: classifyColors(d.colorCount) },
                 indicators: scores,
                 overallScore: calculateOverall(scores),
-                diagnostic: generateDiagnostic(typology, scores, d, plan),
+                aiSummary,
+                diagnostic: generateDiagnostic(typology, scores, d, plan, aiSummary),
                 plan, rawData: d,
                 imageUsed: selectedImage,
                 brandNameUsed: document.getElementById('brandName').value.trim(),
@@ -2451,7 +2615,7 @@
                 displayResults(results);
                 document.getElementById('loadingIndicator').classList.remove('active');
                 document.getElementById('resultsSection').classList.add('active');
-                notify('Análisis completado');
+                notify(aiSummary ? 'Análisis completado con Claude' : 'Análisis completado');
             }, 350);
         }
 
@@ -2718,7 +2882,7 @@
                     // se regenera con la tipología corregida — si solo actualizáramos la
                     // tarjeta de tipología, el resto del informe seguiría describiendo
                     // el tipo anterior, lo cual es inconsistente.
-                    currentResults.diagnostic = generateDiagnostic(correctedTypology, currentResults.indicators, currentResults.rawData, currentResults.plan);
+                    currentResults.diagnostic = generateDiagnostic(correctedTypology, currentResults.indicators, currentResults.rawData, currentResults.plan, currentResults.aiSummary);
                     displayResults(currentResults);
                 }
                 notify('Tipología corregida — el informe se actualizó por completo');
