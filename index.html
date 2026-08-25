@@ -652,6 +652,8 @@
     .admin-panel.active { display: block; }
     .credit-input { width: 100%; padding: 0.55rem; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: inherit; font-size: 0.85rem; margin-bottom: 0.5rem; }
     .history-item { padding: 0.5rem; border-bottom: 1px solid var(--border); font-size: 0.75rem; color: var(--text-muted); font-family: var(--font-mono); }
+    .history-item-clickable { cursor: pointer; transition: background 0.15s; }
+    .history-item-clickable:hover { background: var(--surface-hover); color: var(--text); }
 
     .note-box {
         border: 1px dashed var(--border);
@@ -1394,11 +1396,35 @@
             if (error) { container.textContent = 'No se pudo cargar el historial.'; return; }
             if (!data || !data.length) { container.textContent = 'Todavía no guardaste ningún diagnóstico.'; return; }
             container.innerHTML = data.map(h =>
-                '<div class="history-item">' + (h.brand_name || 'Marca sin nombre') + ' — '
+                '<div class="history-item history-item-clickable" data-id="' + h.id + '">' + (h.brand_name || 'Marca sin nombre') + ' — '
                 + (typologies[h.typology] ? typologies[h.typology].name : h.typology) + ' — '
                 + h.overall_score + '% — ' + new Date(h.created_at).toLocaleDateString('es-BO')
                 + '</div>'
             ).join('');
+            container.querySelectorAll('.history-item-clickable').forEach(el => {
+                el.addEventListener('click', () => viewHistoryEntry(el.dataset.id));
+            });
+        }
+
+        // Vuelve a mostrar un diagnóstico guardado — antes el historial solo
+        // era una lista de texto sin forma de volver a revisar el análisis
+        // completo; ahora reconstruye la pantalla de resultados tal como
+        // quedó guardada, imagen incluida.
+        async function viewHistoryEntry(id) {
+            const { data, error } = await supabaseClient.from('diagnosis_history').select('*').eq('id', id).single();
+            if (error || !data || !data.results_json) { notify('No se pudo cargar este diagnóstico'); return; }
+            const results = data.results_json;
+            if (data.image_path) {
+                const { data: signed } = await supabaseClient.storage.from('diagnosis-images').createSignedUrl(data.image_path, 300);
+                results.imageUsed = signed ? signed.signedUrl : null;
+            }
+            excludedColorIndices = new Set();
+            currentResults = results;
+            closeProfile();
+            displayResults(results);
+            document.getElementById('resultsSection').classList.add('active');
+            document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
+            notify('Mostrando diagnóstico guardado');
         }
 
         // Capa 3 de la mejora de color: recalcula Reproducibilidad y el
@@ -1474,15 +1500,61 @@
             notify('Paleta recalculada — Reproducibilidad y puntaje general actualizados');
         }
 
+        // Convierte currentResults en algo compacto para guardar — deja
+        // afuera datos pesados que no hacen falta para volver a mostrar el
+        // informe (como la lista completa de componentes detectados),
+        // conservando lo mínimo de rawData que sí se usa (ej. contrast,
+        // para poder recalcular la paleta incluso sobre un diagnóstico
+        // histórico).
+        function buildSerializableResults(results) {
+            return {
+                typology: results.typology,
+                colors: results.colors,
+                indicators: results.indicators,
+                overallScore: results.overallScore,
+                aiSummary: results.aiSummary || null,
+                diagnostic: results.diagnostic,
+                plan: results.plan,
+                brandNameUsed: results.brandNameUsed,
+                analyzedAt: results.analyzedAt,
+                rawData: {
+                    contrast: results.rawData.contrast,
+                    symmetryScore: results.rawData.symmetryScore,
+                    edgeComplexity: results.rawData.edgeComplexity,
+                    componentCount: results.rawData.componentCount,
+                    colorCount: results.rawData.colorCount,
+                    inkRatio: results.rawData.inkRatio,
+                    W: results.rawData.W, H: results.rawData.H
+                }
+            };
+        }
+
         async function saveDiagnosisToHistory() {
             if (!currentResults) return;
             if (isGuest) { notify('Crea una cuenta gratis para guardar diagnósticos en tu historial'); return; }
+
+            let imagePath = null;
+            try {
+                const imgSrc = currentResults.imageUsed;
+                const match = imgSrc && imgSrc.match(/^data:([^;]+);base64,/);
+                if (match) {
+                    const mediaType = match[1];
+                    const ext = mediaType.split('/')[1] || 'png';
+                    const fileName = currentUser.id + '/' + Date.now() + '.' + ext;
+                    const blob = await (await fetch(imgSrc)).blob();
+                    const { error: uploadError } = await supabaseClient.storage.from('diagnosis-images').upload(fileName, blob, { contentType: mediaType });
+                    if (!uploadError) imagePath = fileName;
+                }
+            } catch (e) { /* si falla subir la imagen, igual se guarda el resto del diagnóstico */ }
+
             const { error } = await supabaseClient.from('diagnosis_history').insert({
                 user_id: currentUser.id,
                 brand_name: currentResults.brandNameUsed || null,
                 typology: currentResults.typology.type,
                 overall_score: currentResults.overallScore,
-                plan: currentResults.plan
+                plan: currentResults.plan,
+                results_json: buildSerializableResults(currentResults),
+                image_path: imagePath
             });
             if (error) { notify('No se pudo guardar: ' + error.message); return; }
             notify('Guardado en tu historial');
@@ -2096,6 +2168,13 @@
         // de blancos sobre selectedImage — esto es lo que se analiza (no el
         // original), para que el motor vea exactamente lo que el usuario corrigió.
         let adjustedImage = null;
+        // De dónde vino la imagen ('camera' o 'upload') — el motor de color
+        // usa esto para decidir qué tan agresivo ser fusionando colores
+        // parecidos: una foto de cámara tiene ruido fotográfico real que
+        // conviene absorber; un archivo subido normalmente ya es limpio
+        // (un logo exportado), así que ahí conviene ser mucho más fiel al
+        // conteo real de colores, sin de-facto "perdonar" tonos distintos.
+        let imageSource = null;
         let cameraStream = null;
         let cropperInstance = null;
         let selectedTypologyOverride = null;
@@ -2252,6 +2331,7 @@
             reader.onload = (e) => {
                 selectedImage = e.target.result;
                 adjustedImage = null;
+                imageSource = 'upload';
                 document.getElementById('previewImage').src = selectedImage;
                 document.getElementById('previewSection').style.display = 'block';
                 document.getElementById('editControls').style.display = 'none';
@@ -2278,6 +2358,7 @@
             canvas.getContext('2d').drawImage(video, 0, 0);
             selectedImage = canvas.toDataURL('image/jpeg');
             adjustedImage = null;
+            imageSource = 'camera';
             document.getElementById('previewImage').src = selectedImage;
             document.getElementById('previewSection').style.display = 'block';
             document.getElementById('editControls').style.display = 'block';
@@ -2320,6 +2401,7 @@
         function clearImage() {
             selectedImage = null;
             adjustedImage = null;
+            imageSource = null;
             document.getElementById('previewSection').style.display = 'none';
             document.getElementById('editControls').style.display = 'none';
             document.getElementById('previewImage').src = '';
@@ -2621,11 +2703,19 @@
 
                     // --- paso 2: fusión perceptual (Lab) — junta cubetas que un
                     // ojo humano vería como el mismo color de marca, usando el
-                    // centroide real de píxeles, no el valor de cubeta redondeado ---
+                    // centroide real de píxeles, no el valor de cubeta redondeado.
+                    // El umbral depende de dónde vino la imagen: una foto de
+                    // cámara tiene ruido fotográfico real que conviene absorber
+                    // (umbral más permisivo); un archivo subido normalmente ya
+                    // es limpio (un logo exportado), así que ahí se prioriza
+                    // fidelidad al conteo real — un umbral bajo evita fusionar
+                    // colores genuinamente distintos que el diseñador eligió
+                    // a propósito, aunque estén perceptualmente cerca. ---
+                    const mergeThreshold = imageSource === 'upload' ? 3 : 7;
                     const buckets = Array.from(colorMap.values()).map(e => ({
                         r: e.rSum/e.count, g: e.gSum/e.count, b: e.bSum/e.count, count: e.count
                     }));
-                    const merged = mergePerceptualColors(buckets, 9)
+                    const merged = mergePerceptualColors(buckets, mergeThreshold)
                         .sort((a, b) => b.count - a.count);
                     const significant = merged.filter(c => (c.count/totalCount) > 0.02).slice(0, 9);
                     const palette = significant.map(c => {
@@ -2682,6 +2772,16 @@
             return "Policromía alta — Reproducibilidad comprometida";
         }
 
+        // Describe la relación de tamaño entre el elemento adicional y las
+        // letras de forma proporcional al número real — antes siempre decía
+        // "área comparable" aunque el símbolo fuera 47 veces más grande que
+        // una letra, lo cual no tiene sentido describir como "comparable".
+        function describeAreaRatio(ratio) {
+            if (ratio < 1.5) return "un área similar a la de las letras (" + Math.round(ratio*100) + "% del promedio)";
+            if (ratio < 4) return "un área notablemente mayor que las letras (" + Math.round(ratio*100) + "% del promedio)";
+            return "un área mucho mayor que las letras (" + ratio.toFixed(1) + " veces el promedio)";
+        }
+
         function detectTypologyReal(d) {
             const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
             if (d.hasFondo) {
@@ -2704,10 +2804,10 @@
                 }
                 if (touches) {
                     return { type: 'logo_simbolo', confidence: clamp(70 + Math.round(areaRatio*8),65,92),
-                        justification: "El elemento adicional detectado tiene un área comparable a las letras (" + Math.round(areaRatio*100) + "%) y su posición se superpone o toca directamente el bloque de texto, sugiriendo una unidad fusionada." };
+                        justification: "El elemento adicional detectado tiene " + describeAreaRatio(areaRatio) + " y su posición se superpone o toca directamente el bloque de texto, sugiriendo una unidad fusionada." };
                 }
                 return { type: 'logotipo_con_simbolo', confidence: clamp(70 + Math.round(areaRatio*6),65,91),
-                    justification: "El elemento adicional detectado tiene un área comparable a las letras (" + Math.round(areaRatio*100) + "%) y aparece separado del bloque de texto, funcionando como un elemento independiente." };
+                    justification: "El elemento adicional detectado tiene " + describeAreaRatio(areaRatio) + " y aparece separado del bloque de texto, funcionando como un elemento independiente." };
             }
             if (letters >= 2) {
                 return { type: 'logotipo_puro', confidence: clamp(72 + (letters>=3?10:0),65,93),
@@ -3033,7 +3133,7 @@
                 aiSummary,
                 diagnostic: generateDiagnostic(typology, scores, d, plan, aiSummary),
                 plan, rawData: d,
-                imageUsed: selectedImage,
+                imageUsed: adjustedImage || selectedImage,
                 brandNameUsed: document.getElementById('brandName').value.trim(),
                 analyzedAt: new Date().toISOString()
             };
