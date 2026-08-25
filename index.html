@@ -41,6 +41,22 @@
         --font-body: 'IBM Plex Sans', sans-serif;
     }
 
+    /* Modo claro — no usa blanco puro, un tono cálido cercano al papel */
+    [data-theme="light"] {
+        --bg: #FFFAE5;
+        --surface: #FFFFFF;
+        --surface-hover: #FFF3CC;
+        --border: #E8DCB0;
+        --border-soft: #F0E6C4;
+        --text: #211D14;
+        --text-muted: #6B6354;
+        --cyan: #007A85;
+        --magenta: #C43D6B;
+        --yellow: #B8791F;
+        --success: #2E7D52;
+        --danger: #B8402F;
+    }
+
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
     /* Tamaño base responsive: casi todo el resto de la interfaz está en
@@ -121,6 +137,7 @@
 
     .user-section { display: flex; align-items: center; gap: 0.75rem; }
     .user-info { text-align: right; }
+    .user-avatar { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border); flex-shrink: 0; }
     .user-name { font-size: 0.8rem; font-weight: 600; }
     .user-credits { font-family: var(--font-mono); font-size: 0.75rem; color: var(--yellow); font-weight: 600; }
     .user-plan { font-size: 0.7rem; color: var(--text-muted); }
@@ -787,9 +804,11 @@
                 <span></span><span></span><span></span>
             </button>
             <div class="header-menu" id="headerMenu">
+                <button class="btn btn-sm" id="themeToggleBtn">Modo claro</button>
                 <button class="btn btn-sm" id="howItWorksBtn">¿Cómo funciona?</button>
             <span id="testingBadge" style="display:none; font-family:var(--font-mono); font-size:0.65rem; color:var(--yellow); border:1px solid var(--yellow); border-radius:6px; padding:0.2rem 0.5rem; text-transform:uppercase; letter-spacing:0.05em;">Modo prueba — créditos liberados</span>
             <div class="user-section" id="userSection" style="display:none;">
+                <img id="userAvatar" class="user-avatar" alt="" style="display:none;">
                 <div class="user-info">
                     <div class="user-name" id="userName">--</div>
                     <div class="user-credits" id="userCredits">-- créditos</div>
@@ -915,21 +934,21 @@
                     <button class="btn btn-sm btn-accent" onclick="saveWhatsapp()" style="margin-top:0.5rem;">Guardar WhatsApp</button>
                 </div>
                 <div class="form-group">
-                    <label>Solicitar créditos</label>
+                    <h3 style="font-family:var(--font-mono); font-size:1.6rem; margin-bottom:0.4rem; text-transform:uppercase; letter-spacing:0.04em; color:var(--text-muted);">Solicitar créditos</h3>
                     <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:0.5rem; text-transform:none;">
                         Envía WhatsApp al +591 70857324 para solicitar créditos.
                     </p>
                     <button class="btn btn-sm btn-success" onclick="solicitarCreditos()">Solicitar créditos</button>
                 </div>
                 <div class="form-group">
-                    <label>Paquetes</label>
+                    <h3 style="font-family:var(--font-mono); font-size:1.6rem; margin-bottom:0.4rem; text-transform:uppercase; letter-spacing:0.04em; color:var(--text-muted);">Paquetes</h3>
                     <p style="font-size:0.75rem; color:var(--text-muted); text-transform:none;">
                         20 créditos | 60 créditos | 100 créditos<br>
                         Estándar: 10 créditos | Pro: 20 créditos
                     </p>
                 </div>
                 <div class="form-group">
-                    <label>Mi historial</label>
+                    <h3 style="font-family:var(--font-mono); font-size:1.6rem; margin-bottom:0.4rem; text-transform:uppercase; letter-spacing:0.04em; color:var(--text-muted);">Mi historial</h3>
                     <div id="diagnosisHistoryList" style="font-size:0.78rem; color:var(--text-muted); text-transform:none;">Cargando…</div>
                 </div>
             </div>
@@ -966,6 +985,7 @@
                 <p style="font-size:0.75rem; color:var(--text-muted); margin-top:1rem;" id="loginCreditsNote">
                     Al registrarte recibes 10 créditos gratuitos
                 </p>
+                <p style="display:none; font-size:0.72rem; color:var(--text-muted); margin-top:0.6rem; font-family:var(--font-mono);" id="publicStatsLine"></p>
                 <div class="login-brand-credit">
                     <span>Una herramienta de</span>
                     <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAasAAABVCAYAAAD3/suwAAAACXBIWXMAAAsTAAALEwEAmpwYAAAHMWlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4gPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgOS4xLWMwMDIgNzkuYTZhNjM5NjhhLCAyMDI0LzAzLzA2LTExOjUyOjA1ICAgICAgICAiPiA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtbG5zOnhtcE1NPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvbW0vIiB4bWxuczpzdEV2dD0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL3NUeXBlL1Jlc291cmNlRXZlbnQjIiB4bWxuczpwaG90b3Nob3A9Imh0dHA6Ly9ucy5hZG9iZS5jb20vcGhvdG9zaG9wLzEuMC8iIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgMjEuMCAoTWFjaW50b3NoKSIgeG1wOkNyZWF0ZURhdGU9IjIwMjEtMTEtMTJUMjE6Mzc6MDUtMDQ6MDAiIHhtcDpNZXRhZGF0YURhdGU9IjIwMjYtMDgtMjNUMTE6MDM6MTItMDQ6MDAiIHhtcDpNb2RpZnlEYXRlPSIyMDI2LTA4LTIzVDExOjAzOjEyLTA0OjAwIiB4bXBNTTpJbnN0YW5jZUlEPSJ4bXAuaWlkOmRkMDQ3YzBhLWEwN2ItNDA2NS1hZGQwLTcyYTkyZGFmMTdiZiIgeG1wTU06RG9jdW1lbnRJRD0iYWRvYmU6ZG9jaWQ6cGhvdG9zaG9wOmYzN2E4NTYyLWE3YjktZDk0ZS04ZDAyLTVjODNjZjNjOWM4OCIgeG1wTU06T3JpZ2luYWxEb2N1bWVudElEPSJ4bXAuZGlkOmRlZmRiODU4LTg3NGMtNDk5ZC1hM2ZmLTVkNmViNGJmZTRmNyIgcGhvdG9zaG9wOkNvbG9yTW9kZT0iMyIgZGM6Zm9ybWF0PSJpbWFnZS9wbmciPiA8eG1wTU06SGlzdG9yeT4gPHJkZjpTZXE+IDxyZGY6bGkgc3RFdnQ6YWN0aW9uPSJjcmVhdGVkIiBzdEV2dDppbnN0YW5jZUlEPSJ4bXAuaWlkOmRlZmRiODU4LTg3NGMtNDk5ZC1hM2ZmLTVkNmViNGJmZTRmNyIgc3RFdnQ6d2hlbj0iMjAyMS0xMS0xMlQyMTozNzowNS0wNDowMCIgc3RFdnQ6c29mdHdhcmVBZ2VudD0iQWRvYmUgUGhvdG9zaG9wIDIxLjAgKE1hY2ludG9zaCkiLz4gPHJkZjpsaSBzdEV2dDphY3Rpb249InNhdmVkIiBzdEV2dDppbnN0YW5jZUlEPSJ4bXAuaWlkOmU2YmJiNGE3LTg2OGQtNGIzYy1hOTM0LWM3NDY5OWM0YzI3NiIgc3RFdnQ6d2hlbj0iMjAyMS0xMS0xMlQyMTozNzowNS0wNDowMCIgc3RFdnQ6c29mdHdhcmVBZ2VudD0iQWRvYmUgUGhvdG9zaG9wIDIxLjAgKE1hY2ludG9zaCkiIHN0RXZ0OmNoYW5nZWQ9Ii8iLz4gPHJkZjpsaSBzdEV2dDphY3Rpb249InNhdmVkIiBzdEV2dDppbnN0YW5jZUlEPSJ4bXAuaWlkOmRkMDQ3YzBhLWEwN2ItNDA2NS1hZGQwLTcyYTkyZGFmMTdiZiIgc3RFdnQ6d2hlbj0iMjAyNi0wOC0yM1QxMTowMzoxMi0wNDowMCIgc3RFdnQ6c29mdHdhcmVBZ2VudD0iQWRvYmUgUGhvdG9zaG9wIDI1LjExIChNYWNpbnRvc2gpIiBzdEV2dDpjaGFuZ2VkPSIvIi8+IDwvcmRmOlNlcT4gPC94bXBNTTpIaXN0b3J5PiA8cGhvdG9zaG9wOkRvY3VtZW50QW5jZXN0b3JzPiA8cmRmOkJhZz4gPHJkZjpsaT54bXAuZGlkOmFlN2VlZTNhLWRlY2EtNDlmMi04MDlkLTVmYzBhYjgxMmNkMDwvcmRmOmxpPiA8L3JkZjpCYWc+IDwvcGhvdG9zaG9wOkRvY3VtZW50QW5jZXN0b3JzPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PrI9M9MAACOwSURBVHic7Z15uBxVmf8/1d13yc1OAiGCIWEnYIRhU0cURDbZZ0SRYVBWgd8IgzLAIIzOIKLsi8uIIMoyAyK7gCC4gEEWJywBwiIBZElCCAm5N7lbd7+/P7634Sb08lZX9XZTn+c5T5Y+Xaequuq857xrYGYkJCQkJCQ0M6lGn0BCQkJCQkIlEmGVkJCQkND0JMIqISEhIaHpSYRVQkJCQkLTkwirhISEhISmJxFWCQkJCQlNTyKsEhISEhKankyjTyAGMsBUYGNgI6Bt2GcGLAeeBd4AFtf97BLqzdbAx9BCLAc8CjzegPMYDXwY2AqYDATDPssCC4F5wNvAsnqfXMykgRnALGAdVr3WfuB54K/AovqfWlORAaYA04EN0DOSruF4+dX+XdicBKt3HPZ/wwNvDT2r7wKvoTl0BfBOjOfoppWF1SRgL2BvYDNgU/TjF2MBMB+YDfwOuKceJ5hQd/4JOBtNBAXeAK4Cvg/01OEcNkDP5N7omdy4RL888CLwOvBH4IGhP1uN/YAvANsCm5foswwJ5keA24Hf1+XMmodRwIHAHmjxMgOY2NAzCs8S4G9IcD2DFoBzqONCMGjBDBbjga8AR6AfPqwqcznwMHAZcBcfXH0ktCa7oIlwTInPLwH+tYbjjwVOBA5Fi6ewLEHC6qfAb2I8r1qxOfBtYF+gK8T33kHXeT7wUPyn1XR8Ft2nHWntzUExXkdaq5uAe4FXajlYqwmrzwJnoR++2FY2DH3Ar9CD9FLEYyU0lrWA+4BtyvR5B+12Hq7B+Lvx/nMZlV7geuC7SHXWjOwPXIDU7tXSDVyOdrwjVT1/JHAerbeLCksOaa/+By22avLctoqDRTvwb8AtyB4RVVABdKJV8D3AP8RwvITG8TXKCyqQQNsh5nHTwMnAbcQjqEAqo8PRc7lfTMeMk4OBq4kmqEA70W8AdxL/79IMfB64lJEvqEDvwfrAKcCDaOH24bgHaQVhNR64GDiX0iqeKGwEXAOczqrOGQmtwSwkrDzEscgp0IV2BechARM3GwLXoQm9Wd7TzwA/AsbFeMztgZuREBwpbIrmrDDq0ZHCusAZSCV/WJwHbpaXoBRjgR8Ax9V4nC5kmD+LRGC1GmciZ5tKdCMjfxxkkKD6RkzHK8UYJAzPpvHv6nrARdRmp7AecAXwLzU4diP4OrqmNZmt0W96ObB2HAds9AtQjgBNCIfWccxTh8Zs5vuS8D6fR/YTD88Cf4lp3O9Rv4k1AE5DAivOnWHYczgd7WJrxWi0Gzm+hmPUg+kkZoUCbcDRwB3AR6MerJkn5W9Q+x1VMU4C/r0B4yaEYyL6rTw74TzwQ+KJDzmJ2u+oinEycEIDxgX4BLKj1Zo0UvcfVIexasX+KK4u4X12RP4Gu0c5SLMKqz2B/2jg+GcAhzRw/ITKHIEmUQ+/Af43hjF3A/4rhuNUQ4b3XcXrzTeojV2uGKNRmEFcDiv1JEDqr0btgJuZGcgxZ59qD9CMrutroziMLar47jxkrJ2HVtMdyN19T3x2jeG8gwL5HqjiPBJqy6bod5ni6LscOQb8X8QxpwG3UtnrsBjPoziU/0PP5XgU0P73Q38Pw4Kh7z5ZxXlUw8eA3+J3bnoAOSx1Iw/MA9D9Dxtj9CRSp80P+b1GMgW4G98z8hBaQC1Fm4Yo8Z75oVZKSAZU3pgU+zwYapsD2yEV53SixYstAb6EnqlwmFmztYstPM+Z2eFmNrHI8drMbCMz+6mZDYQ87mNmNrWG15q06trV5X601fheTGP+MMSYBR4zs0PNbIKZBasdb5SZbTV03JUhj/s7M+uM6boqtfOd55Q1s2+a2egi17mXmT0Q8hrNzK4xs3SdrjOOtpmZvei4rr+YnolGn2+Y1jV0zrua2Vlm9oyZDTqutRivmNk2Yc+h0Tdg9baLmS0NeeE/N79AOczMFoc8/lXWWi/MSG97m1l/uR9sGM+Y2XoxjLmPaTL20m9ml1jxxVOxdqCZvRri+GZmF5hZKoZrK9fGmiZWD5dWONa4oXP2/nYFjqvxNcbZtjCzlxzX9P0mONeobYKZHWlmjziutxiPm9mUMGM2+oJXv/h7Qlxsv2klF1aQ7Gpmr4UYx0y7tkbfn6SZTTL/yzFgZkfFMOZkM3vSOaaZ2bIqx93GzOaFGGeFmR0Qw/WVa582s3cc5zLfzNZxHvO4oXvk5S0z27rG1xlX29bMXndc05eb4FzjahPM7FQze9Nx3atztYXQEDSTg8UXkX3JwwAy+p6NUn2E4X7kTvl2iO/8JzAz5DgJ8XMECiL18DuU/iUqJ+N32e5BAcpXVDHO4+j6/ubs34VSMkXNJFGObfHFVf0UeMt5zB8jt/+Vzv5rI4eLejl4RKEL2ckrsazG51FPlqFwn/0In4j5Syj5tItmcbDYAAkRz4tnaAK5MOKYR6CANW+K/hvQjQ0rHBPiYSby6vOkcelGXnNRs5j/PXKq8LgiG0pke1nEMQ9Dws4bnP5jahObFKD346gK/bpREuGwDiz/it5hr+fc6cA5IceoN59ELtqVnpcD0XNVlPPP+Q79qTbmt63Lcx3r0ZPuYDDIkMYgbwSsOmcbAQQBFkA+CMiRBgJypN7raUAuSJE2I4WRJkfK8rSZ/my3HHkCFrSvRVd+gMnZpeRIsyLdybTBxWy/8q905gfotEEGg7TGXI3TTvv3yej5D5ON5GVgZxyLtGbZWZ2Cf4V4MdEFFcDPCDex/CNaCSTUnxTKCuDNN3YV0QVVO4qp8sbMXIKyrUTlaiSAvBxLBHfgMqyDqhpU4knguSqOfxnw3yH6n4Q8E0c8L7dP4faxO/B05zRyQZqVQQftliVHiu5UJz1FWn/QRrtlabMcbZYt2tqL/HsgyNCT6mRFqoMVqQ6Wp7roTnWyMtC/VwT6v5vGf5ynOmfwetvkIRfBopuct9Em4MoQlzsDZ1xrMwir3dAFergdqeTi4lzgCWffDMpwMTXG8RN87IU/k8mrKEVRVA7An0j2bhQXGJea4mz8dYKCof6xpLQZxhh8KsDnUYHFsOTQu+y9zrVRnNmEKsZqKWaP3oIU2gEFQ38C7/29WCshPCrywWPmix67Mz/Ia+2TuWPcdjzROYN2y5K2ot72vcD/Q4suL4fhWIg0WliNBb6FMqBX4mWUef3dGMdfgPT+3l96KxqXRWBNZTQKxPXYAhjq+3rEMSehnIMeVdx8ZIPpjjjmcN5CE/Ogs/8s4k//lMF3z/+EqslWwyKUSmqFs/8eqOzGiGZUfmCVfwdDAqMe7f0xV8WAtOXpyg/wfOf6PDB6S15tX5t2K/rT9yPV9J3OS+5CO+eyKuFGFwM7FtkFKjGIskq8UINzuBGp+L7o7H8cqoMVNcg0wccJwN85+96Lfs+onIhPBZZHu+1aBK7eDlyLP83RESggPq5g4fH4sqt7HUJKcS9Se57s7H8mCjx+LOK4TctwoZEj2HogaDu1NzVqCuT7ArP+nBYHMky91y+T7kt1tBtBKg/tslkF7cP75IMgHZjlU5BPkR8IIJu2XHeK/LsBwVKDl4xggUE2R6rX4IUU+YVp8n3Dzy9jOZZkxrI4PY6UGdMH32Ig+IAoWYHMO5sCmzgue1e0u/pzqQ6NFFYz8ef+u4F4PLtKcRZSR67l6DseGXsPIqkyXGu2RAsaDyuRV1LUHc5H8Dss/BwJlVpxEXou13f0XR+d9/HE4wS0LtJ8VCKOd+A7wKfxeXqOR44W++PfkbUUg0MTf5p88FZ6/KmvdE49WPLLoQAKow0MVv+HkcrnGEhn6E6Noo3c/K5839xlqa6bOyx3TwpbVOjdZjmyFjCnc0MApg8WdQZ9FmnOrqayrJmEHE9KCqtGqQEzyPV8hqPva2hXVUueIZydY1/82b4TqqMDrcymOftfA/w+hjH/E19qrtfQpDlQqWME5hLOCegg4OMxjT2JympQIx7B+C4ysnsTDe+KHG5GJCsCOTb0BJ1Bf5CZHFgeLAeWr9wI0Vb5ro6fD1L0B22sSI1iWXrshm9m1t7/6c4Zv3i9fdIt3amOfYfbqQIgQ445ozbklbZ1Sl3OL5EmysPnKONE1ShhtRt+//rvIqN5rbkCmOPs24ZeFs9OLKE69sCvmv0b4WyPpTgQn2edIc+/epSd/wHwsLPvRGTXbY9hXE/hwBzxOZXcTzgvyK8Dn4pp7KbChrXGjT4kwMiRJ8WCzNofnzdq2rW9qfavp1fbTKcsz5xRG5Y6YA45AHl8DbakzO66EcJqAn6D+e+IJ1u2h7eRGsm7Uv4k8hhLiJ/xyPDudao4l+i2k3XRbt/jVPEkikGqByvRbs/rxLAfWqFGJQ6BF5YLkMOGhwnoviQLxpqTB8vSG3SOe7l93fP6grajUsMEVgojVdwzsMDT+M04e1Ai9rURwup4lMG3EgNoVRmn918lfgXcFqL/iSSu7LXgGPzqrN+juKqoHIHvuQQVX1wWw5he7iOcK/CpRM/40Ah79lLkQOG1O+6MgosT6oHl6A/aU39tn/qd/qBti+Emr1TlfeD1+EIctqZEyES9hdWW+B+uu4B7ancqRckjg6A3FdMsQqQLSXCxBX7PsG6kYvCm7inFVvhtIL/Fr4OPiyzaPb7h7L8jlTNPNCt/QIH/Xk5EWo5mIJY6Vmms0CxFcd/wxpGjOz16yhuZtb7pEFDDmQM86Oi3NfIg/AD1FFZtwDfxBS8uR55QUSehapiH1BFevo7SRSXEw3+g7Akefk50pwpQTJPHqaIH7aoakXLrefyTeIACM2uZN7CWnI8/A8k4lNHGE8Bca3LE4B25auxTE3ocGyzOTNy1OzVqy+50F4VWgR5kl6xEO7BesQ/qKaz2wF+u+lc0tujh5fiN2lNRQFstWQepqS4d+nN6jcdrFPvhtwPOB35E9Jf5iyHGvIV4hGO1XIE/vm8zpE6tJbWaP5Yj78Blzv7b40zZU2P68QdytzB5eoOOdftTmV0n5noYn1vJ+JxrX/EYPrPOJymSqaRewmotFJvk0YMvRSqPRvIOcmX3ppE5FH/galg+gWwWV6KM3leiFDXnIKeAkcIE5MnmyWYCysVXTU664UxC9h1PMuMlyIbayMzPy1BMktcJ6MtU/1x6do8p/Imgw/JnwoWTHIMqgifUHCMbpOlJdW4oV3a37+LzKOSjEttSxBegXsLqKPwG84vRRTWaO/FnQ5iE1IHeTNleNkDlFz6y2v9PQN5ytyAbz0jgK/htD7NRIuKonIC/TP21wKMxjBmV2/DbzKYgD8dqPPuaYYfw3/h3suORl7E38XBCFALoD9pm9qQ7x/akO+lJu9aYy/HF0q1FkdCJegirzVFwp4fniGcSioN+pDtf6Oz/eVQqIU7+kfJ1tD4GXIc/G3mzsgn+Z6QP2T57Io65Df5MFa/R+N1+AUM2Nm/9qC+guMawNIOwegep95Y4+2+PnHNicXRIKIMZ2SA9oS9oH9MftNMfuNZDy5EbeyXaKKKFq7WwCvAbr0GqnahJSOPkSfwZBAoZF8bHOH5Rr5jV2Aali2rlFzRMNvufEb38RwapHL2r8POANyOOGScvooWUhwx6B8O6sleTSb0WPEK4hcJJJOrAupAnlRkIMpnBIM1g4NYGe9SAAUW0AbUWVgei1EQe/kz9XYI9/AB4ytl3V/xOJB68MWZfAg6Jcdx6siv+c38V/yRdjs/hr032MErl1Gz8Ar8T0LaEL9DYTC7TlyK7rYd2FM7QDN6BI5o8QVs2SGeypMn6TZcee2tAEVtoLYVVwXjtSdvSj2xVYUrN14vlKFDRa9Q+E38+u0o8jNRelWhHNqyiLp9NzDh0vzyr/jxyUX454phrIduGh37qHwDs5S204+t19A1QCZGNQxx/gMY6kwynD6kDFzj7b4PiJRNqSD5IpbNBOpUN0mT9OyvPIiigiGyqpbA6BtjB2fceVN6gWbkLZX73MA2//aUSd6OUUx62ovYu9HFzKOGcKsJUIC3FScBHnX1vxV+TpxHcgT/jynQUQOtlEF9YQL3Uz38hvHegt3hmQhUYVeUxLLgPhqZWwmpz/C/GCsLlPmsEWaR+8mYQOAypt6LSh+wNS539j0elFlqB6eh8PUuylchVP2pJiG3xF+9bjHb7zfxcDqIEvl4HhMPxPx99+FfB9eJHSEB7GIV27a2mbWgRDIMgFwRBPgjIB+7HoOrnpRbCKkDeWlOc/X+MP9t5I3kKuZF7GIvUch4VaCUeQ3YzD6OozpjeCI5B6bc8XI92mVFoR27cXkeOq/HbhBrJXGTT8TAaqeYbkaQ2DvrR872oQr8C29EcwcKhyJIqtCBHEHc4TEwE0tUZBEPNySpFI8NQC2G1N37j9UuEKwvQaH6IX7DugnZYcXAR8ISz786EN6bXm23wF95cgAzmUdkHf6aKF5B9rFW4FAWKe9iL1s5nOQcFRns5Es1JrUoze/lagFkhNZQTb4LkDwSlxy2sJiOVntfadh61KQleK95GxnlPDEoarWLjcLYoZKP2OFuA3LJXDyRuJs6kSDqVEpxD9GdkEn5HjsKYzeSqXollaMfhVVmeTuXqw948d41wwrgcv427E7m+f6h2p7NmMiSowgorj7YpT5E5Nm5hdST+9C4PUr9aVXFyO3CTs+90/BnEK/Fr/Bk1pqDJuRlXZQfgD2f4E/46OOX4Ksrm7OE+pHZsNX6NfwLfGKlEy7GYyjbCPvwLqDgZQN5+XhvyTCTMW4IU9l4LVAGxKUlbPteez+baLUu7Lzl8gK86fM2F1Ufwq5/60ep1eYzj1wtDQbheo/YRwE4xjf19/EHT++GvtFsvxiDh7VEFDCC3ce99LkWY8h8r0c65ERNwVPLofnkzW1TyxHybyqEkz1GfKt7FeBq9h95ExoegbB5NzzBhZanGZPh3EWDZDPlcmjyrVw8uwTh84RNFPVHjElYZVKfKq/L6JdEN5o3kWfxlREYjHfvoGMZ9BtmvPHQgdY/X0aUeHINSRHm4Abg34njtqOSIN4PKlbSGU0UpHsfvBDQZqYvHlvj8DaRFKMdv8Mc+1YLr8Lvuj0a7q8Q7MCbS5AfaLDvYZlnafDur0ZR+3oazhCLloeISVruhlZqHhWhF1Or8FHnqefgUfpfpSvwIf3LPj+DfVdSaDYBj8dkzFyMBHzU/3QH4nSpeQQuBZsiJF4Vz8Wdc+Ryl708O7dRuLfH53YQrklgLepC3nzd/5xZo8dKIKsgjiyCg3XKvjs31LhmT62NMzqWMmIavUsQTFLEZxyGsRqMHwOsOex7KbdbqvI1ir7yT29fw5fqrRCH2yluY8gRUZqTRHIMS1nq4GHnkRWFttNv3uv5eTPTsGM3AcvzechngDEpPIEuRZ++RyF5ayPh+FEor5nUhryXPo2vwcjT+BUxCUQKwHB02ODcfBFmZolzm8e3waXpmUyTVXBzC6nj8qp2HgKtiGLNZuBF/kOLGqHprHPf8QeRG76ETuX43MvZqM/w7yzn4r60ch+MvSzMbFTYcKdyK3xlnU8pnPulDyYO/gCb5g5C6NGqAdpxcg0wLHgJkL48rJVrs5EgVWpPGWQV02UB3Z35g9tuZ8SzNjGFpZkylL7Xhc3IypFn5AFEnzk0Jl6nifPzZGFqBQrkGT40WkLNFHBkmDO0E5jn7fwrlhmsU/4ZvRdWPVMTeBL6lmIlf/dmPNAPNNPlGZRBNyF5ni+PwC/ZmZAB5v3oyeoMWjt8h/vpzsXjfrpbCqPk8eoOASdnlf5yY63lwYrabQqvANHzZ8F+ghOYtirBKIwO+12B5M/5dSCsxF7+zxRg0McaR2eJN5B3oKeWQQiqxWTGMG5ad8AeJ34xcsKNyBn7Hkqvw519sJZ5A9k0PY9Fz2QqZT0rxAorx9CacPoT4vWWrznvXOqQYle/t3mBg8Tltlst22CCFVoGd8cmKuZRYZEURVrsABzv7LkSG32bOsxaFn6BEmx52RlVx4+AalATYw4eQ23itypAXI4U/8/4ClDUi6jOyHypa6WE+/oVGq2Go0q6n2B3AHvgXFc3KVVT2YCyQRouajWIcv5/Wd9ApQ4o0eTbqX/D9dht8KE8hHDigr7y2sgP4Z+cgD1JiAV6tsBqHfugOZ/9L8b80rcgStMvxrupOQd5xUcmj38Ebi3QI9TUufxF/Qt8r8Av8UkxAeSk9zj55pEr9a8Qxm5lFyKPPmz39RFrbtTuPfv+/OftvhnaUcXlFF61wW4Syqr1ckCq0wEjVo5q7gzRp8kwbWPjDrnz/uflhtyxPQKr8hnJPfOaPZaiuYVGqvRFfdg4O8Cj+RKytzJ2UdvNdnQ1Qots49NFz0YTkIY2CXr3JXKMwAXlAdjr6PoU/GWs5jkUeRx7+QHMWVYybG/CrVmchJ6BW5gUksLwcSny5Ejvw2cHK7r6GC6t8EKQbq1hUHcSO/AAb9i+4YHSu/+RckHrv/LNBmlyQYpveko60E/D/HrNRLGlRqhFWG+J3Fe1FaVEqWt9GAL1od+UNkjwM+ExMY/8EeMDZdybxpYAqx7H4jPZ5JECjFt7cCglHzzO9EpXWWBZxzFYgiyYLr2PTCfi9e5uV61AlZQ8p9Cx4wyrKMQ6fyrvsfDgqPzDU+nMZy2YtKLiG17kFKQKMtbPLnt60//WvjMn3npoLUu8FVA0EGTbpX8BOK+axwWBRBz6Qt/j2jnsyiFS4JUNyqgmOOx1Yx9n3f4iehaCVmIPcej3CvAupAx8lujDvRt5QdyInjkocjVbb3uDisPwd2jl6uAl/FoJSFFRY3mSl1wL3RxyzlXgahQN4nsvRaIG5N/5URs2GoXCNjyFVXyXWR96BBxPNQWI9fBkayo4xOassdCnMArMb302P3XqQ1JhhyWJD1jssj9Q7Nvy3zgfQPS7f+/I62WXXTcz23NiXan+7L6VNYzZIMxBk2HTgTWb2ywFzsHil4M9QOQdlgflUKHQaVljthT+/1mvIeN2qD3y1nI/sQls5+u6O7DpxxPg8gOJhTnD0HYsmrkfwBxd76UKB3+MdfZehSSWqU8VuKCzAw2vEU3Kk1fgxSiDsqZK8G3IC+lktT6jGvIjCIH6Bz6noQBQLGOVdnIpPtV82319BKMl1IfjJzP5XH8qS3oyhuTTAsils0DlWRQLIpSxf2DGlMuRW9gXtLy7KTHinzbKkMfIEBBgDQYYPDS7lwwOL2ar/tVJCCpSw9kJgLedpXEeFxMRhhNVEtBPwrBxyyAbhjQMaSbyLjLbX4zP0n4lyrHkT1JbjXOCzSNVXiZ1RVomLYxh3OKfjV29egj81UCnGI5dlr0r7v/Ab4EcSb6LJ4ydUtiOmUZzab2itUimrcyPycvR4orWhd/GPVJ9hZ7KjTzchE3gbwVwjmLvq/8WLDZN7BQ8/e+/vcqLoTnUxY2Ahu3c/QYY8A0FJ8TEVpaPzLIxAu6qKdQ3D2Kz+iXBOFd4Yj5HI7SgtjYdp+FVmlXgDqTM8mZoLbuVbxDQ2yFjttYcVKtxGfe++it/Gcj9SAa6phEkOvCW+XXozM4Dsda84+09DC75q4iDXwufcM5cKO4jBIE3BLXz4n7VqVqQN/zwbpBmfX8m+yx9j555nCKCcoNoIOS55vYBBc1Zlm7WZedp0M5tvPgbN7DPO447ktrWZLXDes+VmtkuMY1/rHNfM7Ndm1hXDmJ8ys4XOMQfM7OAYxtzSzF5xjrnMkucSM9vR9Lx5WGJmOzTBOUdtBzmvt8BZVYyxnZn1OI59tZllmuCe1KLtbGbPOu7BcO4w5/zj3Vmdgq9oFkjnWyvDfSvxBI6t7RBjkfosjswWIDWktzDd3ki3HyWeYxa6Vm/WiDvw564rRRrltPPGq93AyMxUEZZHULCwh7XQ7rvVs5TfgqoLezkVfxq5AvvhKwP0HCMvOcJkpB26iXCamiXIdu6zmzulZa9TSr5kZhvWWHq3UptiZnOc927QzI6JcezDzSzrHDtrZqdUOc62Fm419ZaZzYzh+vY0s3edY843sw/HMOZIaVPN7DnnvTOLZxfc6LaumT0T4pr7zew057FnmNlrzmPu1AT3Iq42xsz+2cz+6Lj21Rkws6+GGa9Sh9Fm9kCIEzguwoWP1La/6SH18ILFN6l2mNlNznHNzPrM7Ftmlg55ba+GGMPM7PQYrm2smT0YYszjYxhzpLWDQ9y/eabJvtHnHLXta1IHe8mb2eWmRWepYwbmV7s/YmbrNMF9iNLaTGah00yyYdB57atzoZmlwowdmJW1b/8LcJlzS3c/ctnucfZfk7gGf3HKC4gvaHcWcBfhUuhcj9SI5TyiJqNz/BrhVJcPAP9A9FL1J+L3YrwfqWjidtFvdTqQKnZfZ/+zCVc3qlk5i/DX8SxyvLgNefLlkdv4h1BM2tHO45yLVIxh6aS+OT1BZoFCmwDsCExHXsTb4a++XYz/RWECvWG+VE5YbYiSpG7sOE4vmhDuCzP4GsQmaKL2VMnsQe62D8U0dpgFR4EFKCnoPUho9aKM3BujLOqH43suhtMD7E90u9FGyL3YI4BXoMk4saEW5xMoEHOCo+8idC+91bGblS5kv9yniu8+D/wWCa/N0PM83fndxej+PeLsPxaV9vk4WnR6QobiIoMEZCd678ehYqZxcBcKJfCWVXqPUsIqjQI7yxVlG87lyIU4oTQnoLgiD/ehl8lT/qMSbcjw6V1BD2cQOYq8ix7YWfhy/RXjDKIH4wbIgccbAHwZeoY9rvxrKhfjdyb4JcoL6qph3sRMRbskTxqguLgRhf94srLPQGEd1QjUZuZ2lIbNm5JuFUoJq51QQKBHxfPqUH9v4bM1ldFoFeuNVTuM+BKtbgTcTTz5z6rhFqQGjaqK2wvFr3mfy88ysrOqx8EUVJbB82z0own3ppqeUX2YhZ6lerwTAyju6E+Ovu0oTZ23zE2rcCUqwlp18d1i7soFd1WvLeK7JILKwwqkL1/m7P9VlDUkDl5CD0ocO7WwzEaVaKMKqi6UEdz7XF5IIqg8LEIJmD10IBdlTyqtZucp9I7VY+66HJ+gAtgcLbJGCgMoa8xxRKwSX0xYfRrZTDzchwzyCT7uR7YgD1sjY2Zc3IacIupZHO4JpLJbFMOxtke5FD3Mxn+fE5TV425n3+2QrWYk8HukwXilhmM8ib+EDyhVWitXbB7Oc2gn/i1imHdK7aw8CRKXI7tWqDxXCXyPMjVbhjEa2CHmsX+AdljeIpFReAwVe3whpuNti69WUB/K8bYmlKWJi35kT/SWadm5dqdSd/6AVG5ex4cwvI52FN4AfZDmoEkKLlZNL1L77Ys/7VxFit0Ur4vkDaxZZRbi4i2Ur8yTE28d4n9wL0EJbN+K+bjDuQu5qMeVyDjAb1v4BYn3XzXMxp9xZX1aP6vFcOagsJs4d+MLkNdsycq3JZhPY9T1cXEX8gw/mpjV8MUmwl4qC6xX0a4q8bKqjtvxTQx54k+wDJrQ90aG9Th5F63QDyKeLPIFDNVkqsR8VKIloTq+C9zs6PcGI+/dX4gWcYcTfZJ9EpX+qSaU51nifXfqQQ9yHtsfvfv3UYN5q5iw+gvSNZbjQqpPo5+gH/LbVC43/ii1EVag33k/ZDCP+nL2o2ze+xMm11c47qWyMfx8EqeKKPQhp4NyAis79HlDi63XiCzwc1TP63vIMSkMC5Hm4nNUvxAsaF4iOSPUgUXAw8hpbHfkZl+20m9USrmu74J+tGlFPvsZ8pWvp6F+pLIu8pT5EqtW+B1ED/23kRdhrdkIrYj2RAZ0T0JOkPCYjVyZb6X2CToPQHFBxZLXXooSLreyCqVZGIfi045g1TlgJbIHXsTIFFarszF6J3ZHwb+bIo/I4byJhNqDaLKOy/a1K7r/m6K5YQxShw+/74bsuOVUspmh75Wbr43335vsUCv8Xy/aRWeR5mQO0qzNQ4vpuiXlLZfBYisULLgPuiHdyGh2EfWZQNcUUihObXsUDLgAPRD3UH9VyyRUMG3zofPZFjncZNDDm0Urqj8hT7/HkdqinguXWUgffgCaOJajQm+XEjJ9S0JFPooyKGyCQi5ms2Zmru9CGRw2QymW2pGKvgdpod5AGSriJoPs1qNQMH6KDy4S2oZaqYm8feh7/SX6BOhaeof+nkXzTuF9Hxj6PDfUp2Hp9CrlBkxISEhISGg4re4imZCQkJCwBpAIq4SEhISEpicRVgkJCQkJTU8irBISEhISmp5EWCUkJCQkND3/H0bEv2WZ0xGjAAAAAElFTkSuQmCC" alt="AVAND" class="login-brand-logo">
@@ -1051,6 +1071,11 @@
                 <div class="admin-tab-panel" id="adminTabMetricas">
                     <p style="font-size:0.72rem; color:var(--text-muted); margin-bottom:0.75rem; text-transform:none;">Salud general del proyecto — no solo créditos, también uso real y participación en calibración.</p>
                     <div id="metricsGrid" class="metrics-grid-admin">Cargando…</div>
+
+                    <div class="form-group" style="margin-top:1.1rem; display:flex; align-items:center; gap:0.6rem;">
+                        <input type="checkbox" id="publicStatsToggle" style="width:auto;">
+                        <label for="publicStatsToggle" style="margin-bottom:0; text-transform:none; font-size:0.8rem;">Mostrar estas estadísticas en la pantalla de login (público, sin necesidad de iniciar sesión)</label>
+                    </div>
                 </div>
 
                 <button class="btn btn-sm" onclick="closeAdmin()" style="margin-top:0.85rem;">Cerrar panel</button>
@@ -1570,11 +1595,13 @@
                 await new Promise(r => setTimeout(r, 900));
                 ({ data } = await supabaseClient.from('users').select('*').eq('id', authUser.id).single());
             }
+            const avatarUrl = authUser.user_metadata?.avatar_url || authUser.user_metadata?.picture || null;
             if (data) {
                 currentUser = data;
+                currentUser.avatar_url = avatarUrl;
                 return (Date.now() - new Date(data.registration_date).getTime()) < 8000;
             }
-            currentUser = { id: authUser.id, email: authUser.email, name: authUser.user_metadata?.full_name || authUser.email, whatsapp: null, credits: 10, plan: 'libre', last_free_analysis: null, total_analyses: 0, is_admin: false };
+            currentUser = { id: authUser.id, email: authUser.email, name: authUser.user_metadata?.full_name || authUser.email, whatsapp: null, credits: 10, plan: 'libre', last_free_analysis: null, total_analyses: 0, is_admin: false, avatar_url: avatarUrl };
             return true;
         }
 
@@ -1672,6 +1699,14 @@
             document.getElementById('userCredits').textContent = isGuest ? 'Sin cuenta' : (currentUser.credits + ' créditos');
             document.getElementById('userPlan').textContent = isGuest ? 'Plan: Libre (invitado)' : 'Plan: ' + currentUser.plan.charAt(0).toUpperCase() + currentUser.plan.slice(1);
             if (!isGuest && currentUser.whatsapp) splitWhatsapp(currentUser.whatsapp);
+            const avatarImg = document.getElementById('userAvatar');
+            if (!isGuest && currentUser.avatar_url) {
+                avatarImg.src = currentUser.avatar_url;
+                avatarImg.alt = currentUser.name;
+                avatarImg.style.display = 'inline-block';
+            } else {
+                avatarImg.style.display = 'none';
+            }
         }
 
         function openAdmin() {
@@ -1682,6 +1717,17 @@
             renderCalibTypologyGrid();
             renderCalibrationSamples();
             renderAdminMetrics();
+            loadPublicStatsToggle();
+        }
+
+        async function loadPublicStatsToggle() {
+            const { data } = await supabaseClient.from('app_settings').select('show_public_stats').eq('id', 1).single();
+            document.getElementById('publicStatsToggle').checked = data ? data.show_public_stats : false;
+        }
+        async function togglePublicStats(checked) {
+            const { error } = await supabaseClient.from('app_settings').update({ show_public_stats: checked }).eq('id', 1);
+            if (error) { notify('No se pudo actualizar: ' + error.message); return; }
+            notify(checked ? 'Estadísticas públicas activadas' : 'Estadísticas públicas desactivadas');
         }
         function closeAdmin() {
             document.getElementById('adminPanel').classList.remove('active');
@@ -1715,6 +1761,7 @@
         function renderRecognitionGuessUI(imageUrl) {
             const container = document.getElementById('recognitionContent');
             container.innerHTML = '<img src="' + imageUrl + '" alt="Marca a identificar" style="max-width:220px; max-height:220px; border-radius:8px; border:1px solid var(--border); display:block; margin-bottom:0.8rem;">'
+                + '<div class="form-group"><label for="recognitionBrandGuess">¿Reconoces la marca? (opcional)</label><input type="text" class="form-input" id="recognitionBrandGuess" placeholder="Nombre de la marca"></div>'
                 + '<p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:0.5rem;">¿Qué tipología es esta marca?</p>'
                 + '<div class="typology-select-grid" id="recognitionTypologyGrid"></div>'
                 + '<button class="btn btn-primary" id="recognitionSubmitBtn" style="width:100%; margin-top:0.8rem;">Enviar respuesta</button>';
@@ -1735,24 +1782,47 @@
         async function submitRecognitionAnswer() {
             const selected = document.querySelector('#recognitionTypologyGrid .typology-select-card.selected');
             if (!selected) { notify('Selecciona una tipología'); return; }
+            const brandGuess = document.getElementById('recognitionBrandGuess').value.trim();
             const { data: { session } } = await supabaseClient.auth.getSession();
             if (!session) { notify('Tu sesión expiró — vuelve a entrar'); return; }
             try {
                 const res = await fetch('/api/submit-recognition', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.access_token },
-                    body: JSON.stringify({ sampleId: currentRecognitionSample, answeredType: selected.dataset.type })
+                    body: JSON.stringify({ sampleId: currentRecognitionSample, answeredType: selected.dataset.type, answeredBrandName: brandGuess || null })
                 });
                 const data = await res.json();
                 if (!res.ok) { notify(data.error || 'No se pudo enviar la respuesta'); return; }
                 currentUser.credits = data.remainingCredits;
                 updateUserUI();
+
+                // Mecanismo educativo: no solo dice si acertó — muestra la
+                // definición del tipo correcto siempre, y si falló, la
+                // definición de lo que eligió al lado, para que la
+                // diferencia quede clara, no solo el veredicto.
                 const container = document.getElementById('recognitionContent');
                 const resultColor = data.correct ? 'var(--cyan)' : 'var(--magenta)';
-                const resultText = data.correct ? '¡Correcto!' : 'No exactamente — era ' + (typologies[data.correctType] ? typologies[data.correctType].name : data.correctType);
-                container.innerHTML = '<p style="font-size:0.85rem; color:' + resultColor + '; font-weight:600;">' + resultText + '</p>'
-                    + '<p style="font-size:0.75rem; color:var(--text-muted); margin:0.3rem 0 0.8rem;">+1 crédito — saldo: ' + data.remainingCredits + '</p>'
-                    + '<button class="btn btn-accent" id="recognitionNextBtn">Otra marca</button>';
+                const resultText = data.correct ? '¡Correcto!' : 'No exactamente';
+                const correctT = typologies[data.correctType];
+                const chosenT = typologies[selected.dataset.type];
+
+                let html = '<p style="font-size:0.85rem; color:' + resultColor + '; font-weight:600;">' + resultText + '</p>';
+                html += '<div class="note-box" style="margin-top:0.5rem;"><strong>' + correctT.name + ':</strong> ' + correctT.description + '</div>';
+                if (!data.correct) {
+                    html += '<div class="note-box" style="margin-top:0.5rem;"><strong>Tu respuesta (' + chosenT.name + '):</strong> ' + chosenT.description + '</div>';
+                }
+                if (data.notes) {
+                    html += '<div class="note-box" style="margin-top:0.5rem;"><strong>Nota del evaluador:</strong> ' + data.notes + '</div>';
+                }
+                if (brandGuess && data.correctBrandName) {
+                    const brandCorrect = brandGuess.toLowerCase() === data.correctBrandName.toLowerCase();
+                    html += '<p style="font-size:0.75rem; color:var(--text-muted); margin-top:0.5rem;">Marca real: <strong>' + data.correctBrandName + '</strong>' + (brandCorrect ? ' — ¡también acertaste el nombre!' : '') + '</p>';
+                } else if (data.correctBrandName) {
+                    html += '<p style="font-size:0.75rem; color:var(--text-muted); margin-top:0.5rem;">Marca: <strong>' + data.correctBrandName + '</strong></p>';
+                }
+                html += '<p style="font-size:0.75rem; color:var(--text-muted); margin:0.5rem 0 0.8rem;">+1 crédito — saldo: ' + data.remainingCredits + '</p>';
+                html += '<button class="btn btn-accent" id="recognitionNextBtn">Otra marca</button>';
+                container.innerHTML = html;
                 document.getElementById('recognitionNextBtn').addEventListener('click', startRecognitionTest);
             } catch (e) {
                 notify('Error de conexión: ' + e.message);
@@ -1970,8 +2040,37 @@
             }
         }
 
-        function renderCreditHistory() {
-            document.getElementById('creditHistory').innerHTML = '<div class="history-item">El historial detallado se agrega en el siguiente paso — por ahora, revisa la tabla credit_history directamente en Supabase.</div>';
+        // Combina lo otorgado (credit_history) y lo gastado
+        // (credit_usage_log) en un solo listado cronológico — antes esto
+        // era un mensaje diciendo "revisa Supabase directamente"; ahora se
+        // ve de verdad dentro de la app.
+        async function renderCreditHistory() {
+            const container = document.getElementById('creditHistory');
+            container.textContent = 'Cargando…';
+            try {
+                const [grantedRes, spentRes, usersRes] = await Promise.all([
+                    supabaseClient.from('credit_history').select('whatsapp, amount, created_at').order('created_at', { ascending: false }).limit(50),
+                    supabaseClient.from('credit_usage_log').select('user_id, amount, plan, created_at').order('created_at', { ascending: false }).limit(50),
+                    supabaseClient.from('users').select('id, name, email')
+                ]);
+                const userMap = {};
+                (usersRes.data || []).forEach(u => { userMap[u.id] = u.name || u.email; });
+
+                const entries = [];
+                (grantedRes.data || []).forEach(g => entries.push({ type: 'otorgado', label: g.whatsapp, amount: g.amount, date: g.created_at }));
+                (spentRes.data || []).forEach(s => entries.push({ type: 'gastado', label: userMap[s.user_id] || 'usuario', amount: s.amount, plan: s.plan, date: s.created_at }));
+                entries.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+                if (!entries.length) { container.innerHTML = '<div class="history-item">Sin movimientos todavía.</div>'; return; }
+                container.innerHTML = entries.slice(0, 60).map(e => {
+                    const sign = e.type === 'otorgado' ? '+' : '−';
+                    const color = e.type === 'otorgado' ? 'var(--success)' : 'var(--text-muted)';
+                    const detail = e.type === 'otorgado' ? e.label : (e.label + ' (' + e.plan + ')');
+                    return '<div class="history-item" style="color:' + color + ';">' + sign + e.amount + ' — ' + detail + ' — ' + new Date(e.date).toLocaleString('es-BO') + '</div>';
+                }).join('');
+            } catch (e) {
+                container.innerHTML = '<div class="history-item">No se pudo cargar el historial: ' + e.message + '</div>';
+            }
         }
 
         async function saveWhatsapp() {
@@ -2056,12 +2155,38 @@
             });
         }
 
+        function applyTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            document.getElementById('themeToggleBtn').textContent = theme === 'light' ? 'Modo oscuro' : 'Modo claro';
+            localStorage.setItem('brandtest_theme', theme);
+        }
+        function toggleTheme() {
+            const current = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+            applyTheme(current === 'light' ? 'dark' : 'light');
+        }
+
+        // Solo se muestra algo si el admin activó el interruptor — si no,
+        // no se pide ni se expone ningún número.
+        async function loadPublicStats() {
+            try {
+                const res = await fetch('/api/public-stats');
+                const data = await res.json();
+                if (!data.enabled) return;
+                const line = document.getElementById('publicStatsLine');
+                line.textContent = data.userCount + ' diseñadores ya usaron BrandTest · ' + data.totalAnalyses + ' análisis realizados';
+                line.style.display = 'block';
+            } catch (e) { /* silencioso — no es crítico para el login */ }
+        }
+
         document.addEventListener('DOMContentLoaded', async () => {
             loadDB();
+            applyTheme(localStorage.getItem('brandtest_theme') || 'dark');
             renderTypologySelector();
             renderWhatsappCountrySelect();
+            loadPublicStats();
             if (TESTING_MODE) document.getElementById('testingBadge').style.display = 'inline-block';
             await initAuth();
+            document.getElementById('themeToggleBtn').addEventListener('click', toggleTheme);
             document.getElementById('howItWorksBtn').addEventListener('click', openHowItWorks);
             document.getElementById('closeHowItWorksBtn').addEventListener('click', closeHowItWorks);
             document.getElementById('profileBtn').addEventListener('click', openProfile);
@@ -2110,6 +2235,7 @@
                 btn.addEventListener('click', () => switchAdminTab(btn.dataset.tab));
             });
             document.getElementById('recognitionStartBtn').addEventListener('click', startRecognitionTest);
+            document.getElementById('publicStatsToggle').addEventListener('change', (e) => togglePublicStats(e.target.checked));
             document.getElementById('colorblindToggleBtn').addEventListener('click', toggleColorblindSimulation);
             ['calibColorCount','calibCalidad','calibRepro','calibLegib','calibIntel','calibVoca','calibPregnancia','calibOverall','calibConfidence'].forEach(id => {
                 document.getElementById(id).addEventListener('input', (e) => {
@@ -2823,8 +2949,17 @@
                 competitors: document.getElementById('competitors').value.trim(),
                 attributes: document.getElementById('brandAttributes').value.trim()
             };
+            // Los usuarios con cuenta mandan su sesión real (se verifica en
+            // el servidor). Los invitados no tienen sesión — la IA sigue
+            // disponible para ellos por decisión explícita, pero el
+            // servidor aplica su propio límite por IP en ese caso.
+            const headers = { 'Content-Type': 'application/json' };
+            if (!isGuest) {
+                const { data: { session } } = await supabaseClient.auth.getSession();
+                if (session) headers['Authorization'] = 'Bearer ' + session.access_token;
+            }
             const res = await fetch('/api/analyze-brand', {
-                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                method: 'POST', headers,
                 body: JSON.stringify({ imageBase64: base64, mediaType, metrics, context })
             });
             const data = await res.json();
