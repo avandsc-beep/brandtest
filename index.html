@@ -14,7 +14,7 @@
 <meta name="description" content="Instrumento de medición de marcas gráficas: 6 de los 14 indicadores de calidad de Chaves y Belluccia (2003), tipología marcaria y análisis cromático, calculados sobre la imagen real.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800&family=Big+Shoulders+Stencil:wght@700;800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
@@ -36,7 +36,8 @@
         --cat1: var(--cyan);
         --cat3: var(--magenta);
         --cat4: var(--yellow);
-        --font-display: 'Space Grotesk', sans-serif;
+        --font-display: 'Big Shoulders Display', sans-serif;
+        --font-stencil: 'Big Shoulders Stencil', sans-serif;
         --font-mono: 'IBM Plex Mono', monospace;
         --font-body: 'IBM Plex Sans', sans-serif;
     }
@@ -128,7 +129,7 @@
     }
     .header-menu-toggle span { width: 15px; height: 1.6px; background: var(--text); border-radius: 1px; }
 
-    .brand-name { font-family: var(--font-display); font-size: 1.25rem; font-weight: 700; color: var(--text); letter-spacing: -0.01em; }
+    .brand-name { font-family: var(--font-display); font-size: 1.4rem; font-weight: 700; color: var(--text); letter-spacing: 0.01em; text-transform: uppercase; }
     .brand-subtitle { font-family: var(--font-mono); font-size: 0.68rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
     .author-name { font-weight: 600; color: var(--text-muted); font-size: 0.8rem; }
     .author-title { font-size: 0.72rem; color: var(--text-muted); opacity: 0.8; }
@@ -180,8 +181,10 @@
 
     .card-title {
         font-family: var(--font-display);
-        font-size: 1rem;
-        font-weight: 600;
+        font-size: 1.15rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.015em;
         margin-bottom: 1rem;
         padding-bottom: 0.65rem;
         border-bottom: 1px solid var(--border);
@@ -237,11 +240,12 @@
 
     .intro-title {
         font-family: var(--font-display);
-        font-size: 2.1rem;
+        font-size: 2.5rem;
         font-weight: 700;
         color: var(--text);
         margin-bottom: 0.35rem;
-        letter-spacing: -0.02em;
+        letter-spacing: 0.01em;
+        text-transform: uppercase;
     }
 
     .intro-subtitle {
@@ -352,10 +356,10 @@
         background: var(--cyan); color: #0B1213;
         align-items: center; justify-content: center;
         font-family: var(--font-display); font-weight: 700; font-size: 2.1rem;
-        position: relative; z-index: 1; letter-spacing: -0.02em;
+        position: relative; z-index: 1; letter-spacing: 0;
     }
     .login-eyebrow { font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.6rem; }
-    .login-title { font-family: var(--font-display); font-size: 1.85rem; font-weight: 700; margin-bottom: 0.5rem; letter-spacing: -0.02em; }
+    .login-title { font-family: var(--font-display); font-size: 2.3rem; font-weight: 700; margin-bottom: 0.5rem; letter-spacing: 0.01em; text-transform: uppercase; }
     .login-subtitle { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 2rem; }
     .login-brand-credit {
         display: flex; flex-direction: column; align-items: center; gap: 0.4rem;
@@ -489,6 +493,56 @@
     .score-value { font-family: var(--font-mono); font-size: 3.2rem; font-weight: 600; color: var(--text); position: relative; }
     .score-value span { font-size: 1.4rem; color: var(--text-muted); }
     .score-label { font-family: var(--font-mono); font-size: 0.68rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin-top: 0.3rem; }
+
+    /* Sello de prueba de imprenta — el veredicto se lee literalmente como
+       un sello de "OK para imprimir" sobre una hoja de prueba, rompiendo
+       el borde de la tarjeta de puntaje en vez de vivir adentro de ella. */
+    .score-display-wrap { position: relative; margin-bottom: 1.25rem; }
+    .verdict-stamp {
+        position: absolute;
+        top: -18px; right: 14px;
+        width: 118px; height: 118px;
+        border-radius: 50%;
+        border: 3px solid var(--stamp-color, var(--cyan));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transform: rotate(-9deg);
+        background: var(--bg);
+        box-shadow: 0 3px 10px rgba(0,0,0,0.35);
+        z-index: 2;
+    }
+    .verdict-stamp::before {
+        content: '';
+        position: absolute; inset: 6px;
+        border: 1px solid var(--stamp-color, var(--cyan));
+        border-radius: 50%;
+    }
+    .verdict-stamp-text {
+        font-family: var(--font-stencil);
+        font-size: 0.68rem;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+        color: var(--stamp-color, var(--cyan));
+        text-align: center;
+        line-height: 1.2;
+        padding: 0 14px;
+    }
+    @media (max-width: 560px) {
+        .verdict-stamp { width: 92px; height: 92px; top: -12px; right: 8px; }
+        .verdict-stamp-text { font-size: 0.56rem; padding: 0 9px; }
+    }
+
+    /* Tira de control de color — los parches CMYK que usa una imprenta
+       real para calibrar la tinta antes de correr una tirada. Se usa acá
+       como divisor decorativo, no una línea plana genérica. */
+    .color-control-strip { display: flex; height: 5px; width: 100%; border-radius: 2px; overflow: hidden; margin: 1.5rem 0; }
+    .color-control-strip span { flex: 1; }
+    .ccs-c { background: var(--cyan); }
+    .ccs-m { background: var(--magenta); }
+    .ccs-y { background: var(--yellow); }
+    .ccs-k { background: var(--text-muted); }
 
     .radar-card { padding-top: 1.75rem; padding-bottom: 1.75rem; }
     .radar-container { display: flex; justify-content: center; align-items: center; }
@@ -830,6 +884,7 @@
             </div>
         </div>
     </header>
+    <div class="color-control-strip" style="margin:0;" aria-hidden="true"><span class="ccs-c"></span><span class="ccs-m"></span><span class="ccs-y"></span><span class="ccs-k"></span></div>
 
     <main class="container">
 
@@ -1036,8 +1091,11 @@
                     <p style="font-size:0.72rem; color:var(--text-muted); margin-bottom:0.75rem; text-transform:none;">Sube o fotografía marcas reales y decide tú mismo la tipología correcta y los puntajes — esto es la verdad de referencia con la que se afina el motor.</p>
 
                     <div class="form-group">
-                        <input type="file" id="calibImageInput" accept="image/*" capture="environment" style="display:none;">
-                        <button class="btn btn-sm btn-accent" id="calibSelectBtn">Subir o tomar foto</button>
+                        <input type="file" id="calibImageInput" accept="image/*" style="display:none;">
+                        <div class="btn-group btn-group-split">
+                            <button class="btn btn-sm btn-primary" id="calibCameraBtn">Usar cámara</button>
+                            <button class="btn btn-sm" id="calibSelectBtn">Subir archivo</button>
+                        </div>
                         <div id="calibPreviewWrap" style="display:none; margin-top:0.6rem;">
                             <img id="calibPreview" alt="Vista previa de la muestra" style="max-width:150px; max-height:150px; border-radius:8px; border:1px solid var(--border); display:block;">
                         </div>
@@ -1212,9 +1270,14 @@
                         <div class="analyzed-image-date" id="analyzedDate">--</div>
                     </div>
                 </div>
-                <div class="score-display">
-                    <div class="score-value" id="overallScore">--<span>%</span></div>
-                    <div class="score-label">Puntuación General</div>
+                <div class="score-display-wrap">
+                    <div class="score-display">
+                        <div class="score-value" id="overallScore">--<span>%</span></div>
+                        <div class="score-label">Puntuación General</div>
+                    </div>
+                    <div class="verdict-stamp" id="verdictStamp" style="display:none;">
+                        <span class="verdict-stamp-text" id="verdictStampText"></span>
+                    </div>
                 </div>
                 <div class="btn-group" style="margin-bottom:1.25rem;">
                     <button class="btn btn-primary" id="newAnalysisBtn" style="width:100%;">Nuevo análisis</button>
@@ -1522,6 +1585,7 @@
                     symmetryScore: results.rawData.symmetryScore,
                     edgeComplexity: results.rawData.edgeComplexity,
                     componentCount: results.rawData.componentCount,
+                    effectiveComponentCount: results.rawData.effectiveComponentCount,
                     colorCount: results.rawData.colorCount,
                     inkRatio: results.rawData.inkRatio,
                     W: results.rawData.W, H: results.rawData.H
@@ -2286,7 +2350,7 @@
             uploadArea.addEventListener('dragover', (e) => { e.preventDefault(); uploadArea.classList.add('dragover'); });
             uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragover'));
             uploadArea.addEventListener('drop', (e) => { e.preventDefault(); uploadArea.classList.remove('dragover'); if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); });
-            document.getElementById('cameraBtn').addEventListener('click', openCamera);
+            document.getElementById('cameraBtn').addEventListener('click', () => openCamera('main'));
             document.getElementById('captureBtn').addEventListener('click', capturePhoto);
             document.getElementById('closeCameraBtn').addEventListener('click', closeCamera);
             ['brightness','contrast','saturation','rotation'].forEach(id => document.getElementById(id).addEventListener('input', updateAdjustments));
@@ -2308,6 +2372,7 @@
             document.getElementById('saveHistoryBtn').addEventListener('click', saveDiagnosisToHistory);
             document.getElementById('recalcPaletteBtn').addEventListener('click', recalculatePalette);
             document.getElementById('calibSelectBtn').addEventListener('click', () => document.getElementById('calibImageInput').click());
+            document.getElementById('calibCameraBtn').addEventListener('click', () => openCamera('calibration'));
             document.getElementById('calibImageInput').addEventListener('change', (e) => { if (e.target.files[0]) handleCalibFile(e.target.files[0]); });
             document.getElementById('calibSaveBtn').addEventListener('click', saveCalibrationSample);
             document.querySelectorAll('.admin-tab-btn').forEach(btn => {
@@ -2340,7 +2405,13 @@
             reader.readAsDataURL(file);
         }
 
-        function openCamera() {
+        // A qué destino va la foto capturada: 'main' (flujo normal de
+        // análisis) o 'calibration' (banco de calibración del admin) — el
+        // mismo modal de cámara sirve para los dos, sin duplicar código.
+        let cameraCaptureTarget = 'main';
+
+        function openCamera(target) {
+            cameraCaptureTarget = target || 'main';
             document.getElementById('cameraModal').classList.add('active');
             if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
                 navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } } })
@@ -2356,7 +2427,18 @@
             const canvas = document.createElement('canvas');
             canvas.width = video.videoWidth; canvas.height = video.videoHeight;
             canvas.getContext('2d').drawImage(video, 0, 0);
-            selectedImage = canvas.toDataURL('image/jpeg');
+            const dataUrl = canvas.toDataURL('image/jpeg');
+
+            if (cameraCaptureTarget === 'calibration') {
+                calibImageData = dataUrl;
+                document.getElementById('calibPreview').src = calibImageData;
+                document.getElementById('calibPreviewWrap').style.display = 'block';
+                closeCamera();
+                notify('Fotografía capturada para el banco de calibración');
+                return;
+            }
+
+            selectedImage = dataUrl;
             adjustedImage = null;
             imageSource = 'camera';
             document.getElementById('previewImage').src = selectedImage;
@@ -2755,6 +2837,13 @@
                         bg, ink: ink.rgb, contrast, darkRatio,
                         symmetryScore, edgeComplexity,
                         components, componentCount: components.length,
+                        // Conteo efectivo: el bloque de texto cuenta como
+                        // una sola unidad (sin importar su largo), cada
+                        // elemento no-texto (símbolo, accesorio) cuenta
+                        // aparte. Se calcula una sola vez acá para que
+                        // Inteligibilidad, Pregnancia y la métrica visible
+                        // usen siempre el mismo número.
+                        effectiveComponentCount: (textGroup.length > 0 ? 1 : 0) + extras.length,
                         textGroup, extras, avgLetterArea, hasFondo,
                         largestAreaRatio, inkRatio: totalInkArea / (W*H)
                     });
@@ -2826,6 +2915,18 @@
             const cv = meanArea > 0 ? Math.sqrt(variance)/meanArea : 0;
             const cvPct = Math.round(cv*100);
 
+            // Conteo EFECTIVO de unidades gráficas — no el bruto. Un logotipo
+            // largo ("Ministerio", con el punto de la "i" como componente
+            // suelto) no debe contarse letra por letra: todo el bloque de
+            // texto es conceptualmente UNA sola unidad. Los elementos que no
+            // son texto (símbolo, accesorio) sí se cuentan cada uno por
+            // separado, porque ahí cada pieza extra realmente suma
+            // complejidad de lectura. Esto solo aplica a Inteligibilidad y
+            // Pregnancia — Calidad Gráfica sigue comparando letra por letra
+            // a propósito, porque ahí lo que se mide es consistencia de
+            // trazo entre caracteres, no cuántas piezas hay.
+            const effectiveComponentCount = d.effectiveComponentCount;
+
             scores.calidad_grafica = { score: clamp(98 - cv*55, 50, 98),
                 justification: "El trazo entre los " + d.componentCount + " elementos detectados muestra una variación de peso y proporción del " + cvPct + "%. " + (cvPct > 40
                     ? "Una variación así de alta señala grosores y remates poco uniformes entre sí — el conjunto todavía no se lee como un sistema coherente."
@@ -2845,8 +2946,8 @@
                     ? "Está por encima de ese umbral: la marca no depende del tamaño de reproducción para mantenerse legible."
                     : "Está por debajo de ese umbral, lo que puede volver la lectura difícil a tamaños reducidos o en aplicaciones de baja calidad de impresión.") };
 
-            scores.inteligibilidad = { score: clamp(90 - Math.max(0, d.componentCount-3)*6, 40, 95),
-                justification: "Se identificaron " + d.componentCount + " unidades gráficas independientes. " + (d.componentCount > 8
+            scores.inteligibilidad = { score: clamp(90 - Math.max(0, effectiveComponentCount-3)*6, 40, 95),
+                justification: "Se identificaron " + effectiveComponentCount + " unidad(es) gráfica(s) conceptualmente independiente(s) (el bloque de texto cuenta como una sola unidad, sin importar su largo). " + (effectiveComponentCount > 5
                     ? "Es una fragmentación alta para un signo que busca leerse de un solo golpe visual: cuantas más piezas sueltas debe reconstruir el ojo, más lento y menos inmediato resulta el reconocimiento del conjunto."
                     : "La síntesis formal es razonable: pocas piezas independientes favorecen una lectura directa, sin necesidad de reconstruir el conjunto parte por parte.") };
 
@@ -2858,9 +2959,9 @@
                     ? "Hay un punto focal razonablemente claro que concentra la atención."
                     : "Ningún elemento domina con claridad sobre el resto, lo que dispersa la atención en vez de concentrarla en un punto focal.") };
 
-            const complexityPenalty = Math.max(0, d.componentCount-4)*5;
+            const complexityPenalty = Math.max(0, effectiveComponentCount-4)*5;
             scores.pregnancia = { score: clamp(d.symmetryScore*0.4 + (100-d.edgeComplexity)*0.3 + (100-complexityPenalty)*0.3, 35, 96),
-                justification: "La marca mantiene una simetría del " + d.symmetryScore + "% respecto a su eje vertical y una complejidad de forma de " + d.edgeComplexity + "/100, sobre " + d.componentCount + " unidad(es) gráfica(s). " + (d.componentCount <= 6 && d.symmetryScore >= 60
+                justification: "La marca mantiene una simetría del " + d.symmetryScore + "% respecto a su eje vertical y una complejidad de forma de " + d.edgeComplexity + "/100, sobre " + effectiveComponentCount + " unidad(es) gráfica(s) conceptualmente independiente(s). " + (effectiveComponentCount <= 3 && d.symmetryScore >= 60
                     ? "Esta combinación de simetría y baja complejidad favorece el cierre gestáltico y la memorabilidad de la forma."
                     : "La cantidad de piezas independientes juega en contra de la memorabilidad: cuantas más partes sueltas tiene un signo, más difícil resulta evocarlo o dibujarlo de memoria.") };
 
@@ -2924,16 +3025,16 @@
         }
 
         function diagnosticVerdict(score) {
-            if (score >= 70) return { title: 'No necesita ajustes', color: 'var(--success)',
+            if (score >= 70) return { title: 'No necesita ajustes', color: 'var(--success)', stampLabel: 'Aprobado',
                 description: 'La marca cumple de forma consistente los seis indicadores medidos: no se detectan problemas estructurales en la ejecución, el contraste o la composición.',
                 recommendation: 'Mantener el sistema de marca actual. Conviene repetir esta medición cada vez que se ajuste la paleta, la tipografía o el símbolo, para verificar que el cambio no degrade el desempeño.' };
-            if (score >= 50) return { title: 'Ajuste leve', color: 'var(--yellow)',
+            if (score >= 50) return { title: 'Ajuste leve', color: 'var(--yellow)', stampLabel: 'Ajuste leve',
                 description: 'La marca funciona en la mayoría de los indicadores, con uno o dos puntos débiles concretos que conviene revisar antes de una aplicación intensiva (papelería, señalética, medios digitales a gran escala).',
                 recommendation: 'Revisar puntualmente los indicadores con menor puntaje (ver Recomendaciones para el Diseñador) sin necesidad de rediseñar la marca completa.' };
-            if (score >= 35) return { title: 'Necesita ajustes', color: 'var(--magenta)',
+            if (score >= 35) return { title: 'Necesita ajustes', color: 'var(--magenta)', stampLabel: 'Revisar',
                 description: 'Se detectan varias debilidades combinadas — contraste, complejidad de forma o reproducibilidad — que probablemente afecten el desempeño de la marca en aplicaciones reales.',
                 recommendation: 'Planificar una intervención dirigida sobre los indicadores más bajos antes de invertir en producción a gran escala.' };
-            return { title: 'Necesita rediseño', color: 'var(--danger)',
+            return { title: 'Necesita rediseño', color: 'var(--danger)', stampLabel: 'Rediseño',
                 description: 'La combinación de indicadores bajos sugiere problemas estructurales — no puntuales — en la construcción de la marca.',
                 recommendation: 'Considerar un proceso de rediseño integral en vez de ajustes puntuales, partiendo del marco de indicadores de Chaves y Belluccia.' };
         }
@@ -2998,7 +3099,7 @@
                 + '<span class="metric-chip">Contraste: <strong>' + d.contrast.toFixed(2) + ':1</strong></span>'
                 + '<span class="metric-chip">Simetría: <strong>' + d.symmetryScore + '%</strong></span>'
                 + '<span class="metric-chip">Complejidad: <strong>' + d.edgeComplexity + '/100</strong></span>'
-                + '<span class="metric-chip">Elementos: <strong>' + d.componentCount + '</strong></span>'
+                + '<span class="metric-chip">Elementos: <strong>' + (d.effectiveComponentCount ?? d.componentCount) + '</strong></span>'
                 + '<span class="metric-chip">Colores: <strong>' + d.colorCount + '</strong></span>'
                 + '<span class="metric-chip">Cobertura de tinta: <strong>' + Math.round(d.inkRatio*100) + '%</strong></span>'
                 + '</div>';
@@ -3042,7 +3143,7 @@
             const match = imgSrc.match(/^data:([^;]+);base64,(.+)$/);
             if (!match) return null;
             const mediaType = match[1], base64 = match[2];
-            const metrics = { contrast: d.contrast, symmetryScore: d.symmetryScore, edgeComplexity: d.edgeComplexity, componentCount: d.componentCount, colorCount: d.colorCount, inkRatio: d.inkRatio };
+            const metrics = { contrast: d.contrast, symmetryScore: d.symmetryScore, edgeComplexity: d.edgeComplexity, componentCount: d.componentCount, effectiveComponentCount: d.effectiveComponentCount, colorCount: d.colorCount, inkRatio: d.inkRatio };
             const context = {
                 brandName: document.getElementById('brandName').value.trim(),
                 sector: document.getElementById('sector').value.trim(),
@@ -3204,6 +3305,11 @@
             document.getElementById('feedbackQuestion').style.display = 'inline';
             document.getElementById('feedbackButtons').style.display = 'flex';
             animateScoreCount(document.getElementById('overallScore'), results.overallScore);
+            const verdict = diagnosticVerdict(results.overallScore);
+            const stamp = document.getElementById('verdictStamp');
+            stamp.style.setProperty('--stamp-color', verdict.color);
+            document.getElementById('verdictStampText').textContent = verdict.stampLabel;
+            stamp.style.display = 'flex';
             renderRadarChart(results);
             renderCategoryBars(results);
             document.getElementById('typologyName').textContent = results.typology.name || typologies[results.typology.type].name;
