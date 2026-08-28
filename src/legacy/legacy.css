@@ -15,6 +15,10 @@
         --cat1: var(--cyan);
         --cat3: var(--magenta);
         --cat4: var(--yellow);
+        /* Color de "tinta" fijo para las sombras duras estilo prueba de
+           imprenta — no cambia con el tema, porque una sombra impresa no
+           se aclara en modo claro; siempre es la plancha de fondo. */
+        --ink: #15130F;
         --font-display: 'Big Shoulders Display', sans-serif;
         --font-stencil: 'Big Shoulders Stencil', sans-serif;
         --font-mono: 'IBM Plex Mono', monospace;
@@ -132,15 +136,18 @@
         display: inline-flex; align-items: center; justify-content: center;
         width: 34px; height: 34px;
         padding: 0;
-        border: 1px solid var(--border);
+        border: 2px solid var(--ink);
         background: var(--surface-hover);
         color: var(--text);
         border-radius: 8px;
         cursor: pointer;
-        transition: all 0.15s;
+        box-shadow: 2px 2px 0 0 var(--ink);
+        transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.15s ease;
         flex-shrink: 0;
     }
-    .icon-btn:hover { background: var(--border); border-color: var(--text-muted); }
+    .icon-btn:hover { background: var(--border); transform: translate(-1px, -1px); box-shadow: 3px 3px 0 0 var(--ink); }
+    .icon-btn:active { transform: translate(1px, 1px); box-shadow: 1px 1px 0 0 var(--ink); }
+    @media (prefers-reduced-motion: reduce) { .icon-btn:hover, .icon-btn:active { transform: none; } }
     .icon-btn .icon-moon { display: none; }
     [data-theme="light"] .icon-btn .icon-sun { display: none; }
     [data-theme="light"] .icon-btn .icon-moon { display: block; }
@@ -206,7 +213,7 @@
 
     .btn {
         padding: 0.6rem 1.2rem;
-        border: 1px solid var(--border);
+        border: 2px solid var(--ink);
         background: var(--surface-hover);
         color: var(--text);
         font-family: var(--font-body);
@@ -214,19 +221,27 @@
         font-weight: 500;
         cursor: pointer;
         border-radius: 8px;
-        transition: all 0.15s;
+        box-shadow: 3px 3px 0 0 var(--ink);
+        transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.15s ease;
     }
 
-    .btn:hover { background: var(--border); border-color: var(--text-muted); }
-    .btn-primary { background: var(--cyan); border-color: var(--cyan); color: #0B1213; font-weight: 600; }
-    .btn-primary:hover { background: #2CD0DC; border-color: #2CD0DC; }
-    .btn-accent { background: var(--magenta); border-color: var(--magenta); color: #1A0A0F; font-weight: 600; }
-    .btn-accent:hover { background: #F17DA0; border-color: #F17DA0; }
-    .btn-success { background: var(--success); border-color: var(--success); color: #0B1213; font-weight: 600; }
-    .btn-danger { background: var(--danger); border-color: var(--danger); color: #fff; }
-    .btn-sm { padding: 0.4rem 0.8rem; font-size: 0.75rem; }
-    .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    /* Interacción "sello de imprenta": el botón se despega de su sombra al
+       pasar el mouse y se hunde contra ella al presionar — en vez de un
+       simple cambio de color plano. */
+    .btn:hover { background: var(--border); transform: translate(-1px, -1px); box-shadow: 4px 4px 0 0 var(--ink); }
+    .btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 0 var(--ink); }
+    .btn-primary { background: var(--cyan); border-color: var(--ink); color: #0B1213; font-weight: 600; }
+    .btn-primary:hover { background: #2CD0DC; }
+    .btn-accent { background: var(--magenta); border-color: var(--ink); color: #1A0A0F; font-weight: 600; }
+    .btn-accent:hover { background: #F17DA0; }
+    .btn-success { background: var(--success); border-color: var(--ink); color: #0B1213; font-weight: 600; }
+    .btn-danger { background: var(--danger); border-color: var(--ink); color: #fff; }
+    .btn-sm { padding: 0.4rem 0.8rem; font-size: 0.75rem; box-shadow: 2px 2px 0 0 var(--ink); }
+    .btn-sm:hover { box-shadow: 3px 3px 0 0 var(--ink); }
+    .btn-sm:active { box-shadow: 1px 1px 0 0 var(--ink); }
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none !important; box-shadow: 3px 3px 0 0 var(--ink) !important; }
     .btn-group { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.75rem; }
+    @media (prefers-reduced-motion: reduce) { .btn { transition: background 0.15s ease; } .btn:hover, .btn:active { transform: none; } }
 
     .container { max-width: 1120px; margin: 0 auto; padding: 1.5rem 1.25rem 3rem; }
     @media (min-width: 1280px) { .container { max-width: 1220px; } }
@@ -234,11 +249,14 @@
 
     .card {
         background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: 12px;
+        border: 2px solid var(--border);
+        border-radius: 10px;
         padding: 1.5rem;
-        margin-bottom: 1.25rem;
+        margin-bottom: 1.75rem;
+        box-shadow: 6px 6px 0 0 var(--ink);
     }
+    [data-theme="light"] .card { box-shadow: 6px 6px 0 0 rgba(21,19,15,0.18); }
+    #uploadCard, #contextCard { border-color: var(--cyan); box-shadow: 6px 6px 0 0 var(--cyan); }
 
     .card-title {
         font-family: var(--font-display);
@@ -256,12 +274,13 @@
     }
     .step-badge {
         display: inline-flex; align-items: center; justify-content: center;
-        width: 22px; height: 22px; border-radius: 50%;
+        width: 30px; height: 30px; border-radius: 8px;
         background: var(--cyan); color: var(--bg);
-        font-family: var(--font-mono); font-size: 0.72rem; font-weight: 700;
+        border: 2px solid var(--ink);
+        font-family: var(--font-mono); font-size: 0.92rem; font-weight: 700;
         flex-shrink: 0;
+        transform: rotate(-6deg);
     }
-    #uploadCard, #contextCard { border-left: 3px solid var(--cyan); }
     .card-title .eyebrow {
         font-family: var(--font-mono);
         font-size: 0.65rem;
@@ -397,36 +416,40 @@
     .pricing-card {
         position: relative;
         background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: 16px;
+        border: 2px solid var(--border);
+        border-radius: 12px;
         padding: 1.75rem 1.5rem;
         text-align: center;
         opacity: 0;
         transform: translateY(22px);
+        box-shadow: 5px 5px 0 0 var(--ink);
         transition: transform 0.45s cubic-bezier(0.2,0.8,0.2,1), opacity 0.45s ease,
                     border-color 0.2s ease, box-shadow 0.2s ease;
     }
     .pricing-card.in-view { opacity: 1; transform: translateY(0); }
-    .pricing-card:hover { border-color: var(--cyan); box-shadow: 0 12px 32px rgba(0,0,0,0.25); }
+    .pricing-card:hover { border-color: var(--cyan); box-shadow: 8px 8px 0 0 var(--ink); }
     .pricing-card:hover.in-view { transform: translateY(-6px); }
 
     .pricing-card-popular {
         border-color: var(--cyan);
         background: var(--surface-hover);
+        box-shadow: 6px 6px 0 0 var(--cyan);
     }
+    .pricing-card-popular:hover { box-shadow: 9px 9px 0 0 var(--cyan); }
     @media (min-width: 761px) {
         .pricing-card-popular { transform: translateY(6px) scale(1.045); }
         .pricing-card-popular.in-view { transform: translateY(-6px) scale(1.045); }
         .pricing-card-popular:hover.in-view { transform: translateY(-12px) scale(1.045); }
     }
-    .pricing-card-popular { box-shadow: 0 16px 40px rgba(0,185,198,0.16); }
 
     .pricing-card-badge {
         position: absolute;
-        top: -12px; left: 50%;
-        transform: translateX(-50%);
+        top: -14px; left: 50%;
+        transform: translateX(-50%) rotate(-4deg);
         background: var(--cyan);
         color: var(--bg);
+        border: 2px solid var(--ink);
+        box-shadow: 2px 2px 0 0 var(--ink);
         font-family: var(--font-mono);
         font-size: 0.6rem;
         font-weight: 700;
@@ -567,7 +590,9 @@
     }
 
     .hero-actions { display: flex; flex-direction: column; align-items: center; gap: 0.65rem; }
-    .hero-cta { padding: 0.95rem 2.75rem; font-size: 0.95rem; border-radius: 10px; }
+    .hero-cta { padding: 0.95rem 2.75rem; font-size: 0.95rem; border-radius: 10px; box-shadow: 5px 5px 0 0 var(--ink); }
+    .hero-cta:hover { box-shadow: 7px 7px 0 0 var(--ink); }
+    .hero-cta:active { box-shadow: 2px 2px 0 0 var(--ink); }
     .hero-secondary-link {
         display: inline-block;
         font-size: 0.82rem;
@@ -599,17 +624,17 @@
     }
 
     .upload-area {
-        border: 1.5px dashed var(--border);
+        border: 2px dashed var(--border);
         background: var(--bg);
         padding: 2.25rem 1.5rem;
         text-align: center;
         cursor: pointer;
         border-radius: 12px;
         margin-bottom: 0.75rem;
-        transition: all 0.15s;
+        transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
     }
     .upload-area:hover, .upload-area:focus-visible { border-color: var(--cyan); background: var(--surface-hover); }
-    .upload-area.dragover { border-color: var(--cyan); background: var(--surface-hover); }
+    .upload-area.dragover { border-color: var(--cyan); background: var(--surface-hover); border-style: solid; box-shadow: 4px 4px 0 0 var(--cyan); }
     .upload-icon { color: var(--text-muted); margin-bottom: 0.75rem; transition: color 0.15s; }
     .upload-area:hover .upload-icon, .upload-area:focus-visible .upload-icon, .upload-area.dragover .upload-icon { color: var(--cyan); }
     .upload-text { font-weight: 600; font-size: 0.95rem; }
