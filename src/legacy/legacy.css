@@ -351,12 +351,18 @@
     /* ===== Sección de planes (landing / pantalla de login) ===== */
     .pricing-section {
         width: 100%;
-        max-width: 900px;
-        flex: 1 1 640px;
-        margin: 0 auto;
-        padding: 0 0.5rem;
+        margin-top: 2.5rem;
+        padding: 3.5rem 1.5rem 4rem;
+        background: var(--surface);
+        border: 1px solid var(--border-soft);
+        border-radius: 24px;
     }
 
+    .pricing-header, .pricing-grid, .pricing-footnote {
+        max-width: 900px;
+        margin-left: auto;
+        margin-right: auto;
+    }
     .pricing-header { text-align: center; margin-bottom: 2rem; }
     .pricing-eyebrow {
         font-family: var(--font-mono);
@@ -482,26 +488,50 @@
 
     .login-screen {
         display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        align-items: flex-start;
-        gap: 2.5rem;
-        min-height: 70vh; min-height: 70dvh;
-        padding: 2.5rem 0;
+        flex-direction: column;
+        align-items: stretch;
     }
 
-    .login-card {
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: 20px;
-        padding: 3rem 2.5rem;
+    /* ===== Hero de entrada — reemplaza la vieja tarjeta chica y centrada
+       por un panel abierto, con la mira de registro de imprenta como
+       textura de fondo a gran escala y marcas de registro en las
+       esquinas (el mismo lenguaje que ya usa el resto del sitio, solo
+       llevado a una escala de "portada"). ===== */
+    .hero {
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        justify-content: center;
+        align-items: center;
         text-align: center;
-        max-width: 420px;
-        width: 90%;
-        flex: 0 1 420px;
-        box-shadow: 0 24px 70px rgba(0,0,0,0.4);
-        animation: cardIn 0.6s cubic-bezier(0.2,0.8,0.2,1);
+        min-height: 60vh; min-height: 60dvh;
+        padding: 4.5rem 1.5rem 3.5rem;
     }
+    .hero-inner { position: relative; z-index: 1; max-width: 480px; width: 100%; }
+
+    .hero-decor {
+        position: absolute;
+        top: 50%; right: -10%;
+        width: 620px; height: 620px;
+        transform: translateY(-50%);
+        color: var(--cyan);
+        opacity: 0.055;
+        pointer-events: none;
+        animation: heroSpin 100s linear infinite;
+    }
+    .hero-decor svg { width: 100%; height: 100%; display: block; }
+    @keyframes heroSpin { to { transform: translateY(-50%) rotate(360deg); } }
+    @media (max-width: 900px) { .hero-decor { width: 440px; height: 440px; right: -20%; } }
+    @media (max-width: 560px) { .hero-decor { display: none; } }
+
+    .hero-corner-mark { position: absolute; width: 22px; height: 22px; color: var(--border); opacity: 0.5; pointer-events: none; }
+    .hero-corner-mark::before, .hero-corner-mark::after { content: ''; position: absolute; background: currentColor; }
+    .hero-corner-mark::before { top: 50%; left: 0; width: 100%; height: 1px; transform: translateY(-50%); }
+    .hero-corner-mark::after { left: 50%; top: 0; height: 100%; width: 1px; transform: translateX(-50%); }
+    .hero-corner-tl { top: 1.75rem; left: 1.75rem; }
+    .hero-corner-br { bottom: 1.75rem; right: 1.75rem; }
+    @media (max-width: 700px) { .hero-corner-mark { display: none; } }
+
     .login-stage { position: relative; width: 128px; height: 128px; margin: 0 auto 1.5rem; display: flex; align-items: center; justify-content: center; }
     .login-stage::before {
         content: '';
@@ -528,22 +558,43 @@
         font-family: var(--font-display); font-weight: 700; font-size: 2.1rem;
         position: relative; z-index: 1; letter-spacing: 0;
     }
-    .login-eyebrow { font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.6rem; }
-    .login-title { font-family: var(--font-display); font-size: 2.3rem; font-weight: 700; margin-bottom: 0.5rem; letter-spacing: 0.01em; text-transform: uppercase; }
-    .login-subtitle { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 2rem; }
-    .login-brand-credit {
-        display: flex; flex-direction: column; align-items: center; gap: 0.4rem;
-        margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--border);
+    .login-eyebrow { font-family: var(--font-mono); font-size: 0.72rem; color: var(--cyan); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 0.75rem; font-weight: 600; }
+    .login-title { font-family: var(--font-display); font-size: 3.2rem; line-height: 1.05; font-weight: 700; margin-bottom: 0.75rem; letter-spacing: 0.005em; text-transform: uppercase; }
+    .login-subtitle { font-size: 1rem; color: var(--text-muted); margin-bottom: 2rem; }
+    @media (max-width: 560px) {
+        .login-title { font-size: 2.1rem; }
+        .hero { padding: 3.5rem 1.25rem 3rem; }
     }
-    .login-brand-credit span { font-family: var(--font-mono); font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; }
-    .login-brand-logo { height: 22px; width: auto; opacity: 0.92; }
+
+    .hero-actions { display: flex; flex-direction: column; align-items: center; gap: 0.65rem; }
+    .hero-cta { padding: 0.95rem 2.75rem; font-size: 0.95rem; border-radius: 10px; }
+    .hero-secondary-link {
+        display: inline-block;
+        font-size: 0.82rem;
+        color: var(--text-muted);
+        padding: 0.5rem 1rem;
+        border: 1px solid transparent;
+        border-radius: 8px;
+        transition: border-color 0.15s, color 0.15s;
+    }
+    .hero-secondary-link:hover { border-color: var(--border); color: var(--text); }
+    .hero-switch-note { font-size: 0.78rem; margin-top: 0.4rem; }
+    .hero-note { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.85rem; }
+
+    .landing-credit {
+        display: flex; flex-direction: column; align-items: center; gap: 0.45rem;
+        margin-top: 2.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border-soft);
+    }
+    .landing-credit span { font-family: var(--font-mono); font-size: 0.62rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; }
+    .landing-credit-logo { height: 20px; width: auto; opacity: 0.85; }
+
+    .color-control-strip.hero-divider { margin: 0; height: 6px; border-radius: 0; }
 
     @keyframes pulseGlow { 0%, 100% { opacity: 0.55; transform: scale(1); } 50% { opacity: 1; transform: scale(1.1); } }
-    @keyframes cardIn { from { opacity: 0; transform: translateY(14px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
     @keyframes miraColorCycle { 0%, 100% { color: var(--cyan); } 33% { color: var(--magenta); } 66% { color: var(--yellow); } }
     @keyframes miraColorCycleBg { 0%, 100% { background: var(--cyan); } 33% { background: var(--magenta); } 66% { background: var(--yellow); } }
     @media (prefers-reduced-motion: reduce) {
-        .login-ring .anim, .login-ring, .login-center-dot, .login-stage::before, .login-card,
+        .login-ring .anim, .login-ring, .login-center-dot, .login-stage::before, .hero-decor,
         .brand-mark .regmark, .brand-mark .regmark .anim, .intro-icon, .intro-icon .anim { animation: none; }
     }
 
