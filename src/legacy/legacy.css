@@ -141,12 +141,12 @@
         color: var(--text);
         border-radius: 8px;
         cursor: pointer;
-        box-shadow: 2px 2px 0 0 var(--ink);
+        box-shadow: 2px 2px 0 0 var(--yellow);
         transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.15s ease;
         flex-shrink: 0;
     }
-    .icon-btn:hover { background: var(--border); transform: translate(-1px, -1px); box-shadow: 3px 3px 0 0 var(--ink); }
-    .icon-btn:active { transform: translate(1px, 1px); box-shadow: 1px 1px 0 0 var(--ink); }
+    .icon-btn:hover { background: var(--border); transform: translate(-1px, -1px); box-shadow: 3px 3px 0 0 var(--yellow); }
+    .icon-btn:active { transform: translate(1px, 1px); box-shadow: 1px 1px 0 0 var(--yellow); }
     @media (prefers-reduced-motion: reduce) { .icon-btn:hover, .icon-btn:active { transform: none; } }
     .icon-btn .icon-moon { display: none; }
     [data-theme="light"] .icon-btn .icon-sun { display: none; }
@@ -211,6 +211,10 @@
         .account-menu.open .account-dropdown { max-height: 220px; padding: 0.5rem; border-width: 1px; }
     }
 
+    /* Cada variante de botón proyecta la sombra en el color de la "placa
+       opuesta" en vez de un negro plano — como una plancha CMYK mal
+       registrada. Sirve también para que la sombra se note de verdad
+       sobre el fondo oscuro (un negro sobre casi-negro no se ve). */
     .btn {
         padding: 0.6rem 1.2rem;
         border: 2px solid var(--ink);
@@ -221,25 +225,36 @@
         font-weight: 500;
         cursor: pointer;
         border-radius: 8px;
-        box-shadow: 3px 3px 0 0 var(--ink);
+        box-shadow: 3px 3px 0 0 var(--magenta), 0 4px 18px rgba(232,93,138,0.28);
         transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.15s ease;
     }
 
     /* Interacción "sello de imprenta": el botón se despega de su sombra al
        pasar el mouse y se hunde contra ella al presionar — en vez de un
        simple cambio de color plano. */
-    .btn:hover { background: var(--border); transform: translate(-1px, -1px); box-shadow: 4px 4px 0 0 var(--ink); }
-    .btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 0 var(--ink); }
-    .btn-primary { background: var(--cyan); border-color: var(--ink); color: #0B1213; font-weight: 600; }
-    .btn-primary:hover { background: #2CD0DC; }
-    .btn-accent { background: var(--magenta); border-color: var(--ink); color: #1A0A0F; font-weight: 600; }
-    .btn-accent:hover { background: #F17DA0; }
-    .btn-success { background: var(--success); border-color: var(--ink); color: #0B1213; font-weight: 600; }
-    .btn-danger { background: var(--danger); border-color: var(--ink); color: #fff; }
-    .btn-sm { padding: 0.4rem 0.8rem; font-size: 0.75rem; box-shadow: 2px 2px 0 0 var(--ink); }
-    .btn-sm:hover { box-shadow: 3px 3px 0 0 var(--ink); }
-    .btn-sm:active { box-shadow: 1px 1px 0 0 var(--ink); }
-    .btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none !important; box-shadow: 3px 3px 0 0 var(--ink) !important; }
+    .btn:hover { background: var(--border); transform: translate(-1px, -1px); box-shadow: 5px 5px 0 0 var(--magenta), 0 6px 26px rgba(232,93,138,0.4); }
+    .btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 0 var(--magenta); }
+    .btn-primary {
+        background: var(--cyan); border-color: var(--ink); color: #0B1213; font-weight: 600;
+        box-shadow: 3px 3px 0 0 var(--magenta), 0 4px 20px rgba(232,93,138,0.35);
+    }
+    .btn-primary:hover { background: #2CD0DC; box-shadow: 5px 5px 0 0 var(--magenta), 0 6px 28px rgba(232,93,138,0.45); }
+    .btn-primary:active { box-shadow: 1px 1px 0 0 var(--magenta); }
+    .btn-accent {
+        background: var(--magenta); border-color: var(--ink); color: #1A0A0F; font-weight: 600;
+        box-shadow: 3px 3px 0 0 var(--cyan), 0 4px 20px rgba(0,185,198,0.35);
+    }
+    .btn-accent:hover { background: #F17DA0; box-shadow: 5px 5px 0 0 var(--cyan), 0 6px 28px rgba(0,185,198,0.45); }
+    .btn-accent:active { box-shadow: 1px 1px 0 0 var(--cyan); }
+    .btn-success {
+        background: var(--success); border-color: var(--ink); color: #0B1213; font-weight: 600;
+        box-shadow: 3px 3px 0 0 var(--yellow), 0 4px 20px rgba(232,178,61,0.35);
+    }
+    .btn-success:hover { box-shadow: 5px 5px 0 0 var(--yellow), 0 6px 28px rgba(232,178,61,0.45); }
+    .btn-success:active { box-shadow: 1px 1px 0 0 var(--yellow); }
+    .btn-danger { background: var(--danger); border-color: var(--ink); color: #fff; box-shadow: 3px 3px 0 0 var(--ink); }
+    .btn-sm { padding: 0.4rem 0.8rem; font-size: 0.75rem; }
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none !important; }
     .btn-group { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.75rem; }
     @media (prefers-reduced-motion: reduce) { .btn { transition: background 0.15s ease; } .btn:hover, .btn:active { transform: none; } }
 
@@ -253,10 +268,14 @@
         border-radius: 10px;
         padding: 1.5rem;
         margin-bottom: 1.75rem;
-        box-shadow: 6px 6px 0 0 var(--ink);
+        box-shadow: 6px 6px 0 0 var(--magenta), 0 8px 28px rgba(232,93,138,0.16);
+        transition: box-shadow 0.2s ease, transform 0.2s ease;
     }
-    [data-theme="light"] .card { box-shadow: 6px 6px 0 0 rgba(21,19,15,0.18); }
-    #uploadCard, #contextCard { border-color: var(--cyan); box-shadow: 6px 6px 0 0 var(--cyan); }
+    [data-theme="light"] .card { box-shadow: 6px 6px 0 0 var(--magenta), 0 8px 24px rgba(232,93,138,0.12); }
+    #uploadCard, #contextCard {
+        border-color: var(--cyan);
+        box-shadow: 6px 6px 0 0 var(--cyan), 0 8px 28px rgba(0,185,198,0.2);
+    }
 
     .card-title {
         font-family: var(--font-display);
@@ -280,6 +299,7 @@
         font-family: var(--font-mono); font-size: 0.92rem; font-weight: 700;
         flex-shrink: 0;
         transform: rotate(-6deg);
+        animation: miraColorCycleBg 6s ease-in-out infinite;
     }
     .card-title .eyebrow {
         font-family: var(--font-mono);
@@ -422,20 +442,24 @@
         text-align: center;
         opacity: 0;
         transform: translateY(22px);
-        box-shadow: 5px 5px 0 0 var(--ink);
+        box-shadow: 5px 5px 0 0 var(--magenta), 0 6px 22px rgba(232,93,138,0.2);
         transition: transform 0.45s cubic-bezier(0.2,0.8,0.2,1), opacity 0.45s ease,
                     border-color 0.2s ease, box-shadow 0.2s ease;
     }
     .pricing-card.in-view { opacity: 1; transform: translateY(0); }
-    .pricing-card:hover { border-color: var(--cyan); box-shadow: 8px 8px 0 0 var(--ink); }
+    .pricing-card:hover { border-color: var(--cyan); box-shadow: 8px 8px 0 0 var(--cyan), 0 8px 28px rgba(0,185,198,0.3); }
     .pricing-card:hover.in-view { transform: translateY(-6px); }
 
     .pricing-card-popular {
         border-color: var(--cyan);
         background: var(--surface-hover);
-        box-shadow: 6px 6px 0 0 var(--cyan);
+        animation: popularGlow 2.6s ease-in-out infinite;
     }
-    .pricing-card-popular:hover { box-shadow: 9px 9px 0 0 var(--cyan); }
+    .pricing-card-popular:hover { animation-play-state: paused; box-shadow: 9px 9px 0 0 var(--cyan), 0 0 42px rgba(0,185,198,0.55); }
+    @keyframes popularGlow {
+        0%, 100% { box-shadow: 6px 6px 0 0 var(--cyan), 0 0 18px rgba(0,185,198,0.25); }
+        50% { box-shadow: 6px 6px 0 0 var(--cyan), 0 0 38px rgba(0,185,198,0.55); }
+    }
     @media (min-width: 761px) {
         .pricing-card-popular { transform: translateY(6px) scale(1.045); }
         .pricing-card-popular.in-view { transform: translateY(-6px) scale(1.045); }
@@ -449,7 +473,7 @@
         background: var(--cyan);
         color: var(--bg);
         border: 2px solid var(--ink);
-        box-shadow: 2px 2px 0 0 var(--ink);
+        box-shadow: 2px 2px 0 0 var(--magenta);
         font-family: var(--font-mono);
         font-size: 0.6rem;
         font-weight: 700;
@@ -495,7 +519,7 @@
 
     @media (prefers-reduced-motion: reduce) {
         .pricing-card { transition: none; opacity: 1; transform: none; }
-        .pricing-card-popular { transform: none; }
+        .pricing-card-popular { transform: none; animation: none; box-shadow: 6px 6px 0 0 var(--cyan), 0 0 18px rgba(0,185,198,0.25); }
         .pricing-card:hover, .pricing-card:hover.in-view, .pricing-card-popular:hover.in-view { transform: none; }
     }
 
@@ -590,9 +614,34 @@
     }
 
     .hero-actions { display: flex; flex-direction: column; align-items: center; gap: 0.65rem; }
-    .hero-cta { padding: 0.95rem 2.75rem; font-size: 0.95rem; border-radius: 10px; box-shadow: 5px 5px 0 0 var(--ink); }
-    .hero-cta:hover { box-shadow: 7px 7px 0 0 var(--ink); }
+    /* El botón estrella de la pantalla de entrada: degradado CMY en
+       movimiento lento + un brillo que la recorre cada pocos segundos —
+       la única acción de toda la app que se permite este nivel de fiesta. */
+    .hero-cta {
+        position: relative;
+        overflow: hidden;
+        padding: 0.95rem 2.75rem;
+        font-size: 0.95rem;
+        border-radius: 10px;
+        background: linear-gradient(115deg, var(--cyan), var(--magenta), var(--yellow), var(--cyan));
+        background-size: 300% 100%;
+        animation: heroCtaGradient 7s ease infinite;
+        box-shadow: 5px 5px 0 0 var(--ink), 0 10px 34px rgba(0,185,198,0.35);
+    }
+    .hero-cta:hover { box-shadow: 7px 7px 0 0 var(--ink), 0 12px 40px rgba(232,93,138,0.4); }
     .hero-cta:active { box-shadow: 2px 2px 0 0 var(--ink); }
+    .hero-cta::after {
+        content: '';
+        position: absolute;
+        top: 0; left: -60%;
+        width: 35%; height: 100%;
+        background: linear-gradient(120deg, transparent, rgba(255,255,255,0.65), transparent);
+        transform: skewX(-20deg);
+        animation: heroCtaShine 3.2s ease-in-out infinite;
+    }
+    @keyframes heroCtaGradient { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+    @keyframes heroCtaShine { 0%, 15% { left: -60%; } 55%, 100% { left: 130%; } }
+    @media (prefers-reduced-motion: reduce) { .hero-cta { animation: none; } .hero-cta::after { display: none; } }
     .hero-secondary-link {
         display: inline-block;
         font-size: 0.82rem;
@@ -620,7 +669,8 @@
     @keyframes miraColorCycleBg { 0%, 100% { background: var(--cyan); } 33% { background: var(--magenta); } 66% { background: var(--yellow); } }
     @media (prefers-reduced-motion: reduce) {
         .login-ring .anim, .login-ring, .login-center-dot, .login-stage::before, .hero-decor,
-        .brand-mark .regmark, .brand-mark .regmark .anim, .intro-icon, .intro-icon .anim { animation: none; }
+        .brand-mark .regmark, .brand-mark .regmark .anim, .intro-icon, .intro-icon .anim,
+        .step-badge, .upload-icon { animation: none; }
     }
 
     .upload-area {
@@ -636,7 +686,11 @@
     .upload-area:hover, .upload-area:focus-visible { border-color: var(--cyan); background: var(--surface-hover); }
     .upload-area.dragover { border-color: var(--cyan); background: var(--surface-hover); border-style: solid; box-shadow: 4px 4px 0 0 var(--cyan); }
     .upload-icon { color: var(--text-muted); margin-bottom: 0.75rem; transition: color 0.15s; }
-    .upload-area:hover .upload-icon, .upload-area:focus-visible .upload-icon, .upload-area.dragover .upload-icon { color: var(--cyan); }
+    .upload-area:hover .upload-icon, .upload-area:focus-visible .upload-icon, .upload-area.dragover .upload-icon {
+        color: var(--cyan);
+        animation: uploadIconBob 0.9s ease-in-out infinite;
+    }
+    @keyframes uploadIconBob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
     .upload-text { font-weight: 600; font-size: 0.95rem; }
     .upload-subtext { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem; }
 
