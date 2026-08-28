@@ -6,7 +6,7 @@
         --border-soft: #2A251E;
         --text: #EDE8DD;
         --text-muted: #9A9285;
-        --cyan: #00B9C6;
+        --cyan: #009EE2;
         --magenta: #E85D8A;
         --yellow: #E8B23D;
         --success: #4FAE7A;
@@ -34,7 +34,7 @@
         --border-soft: #F0E6C4;
         --text: #211D14;
         --text-muted: #6B6354;
-        --cyan: #007A85;
+        --cyan: #006894;
         --magenta: #C43D6B;
         --yellow: #B8791F;
         --success: #2E7D52;
@@ -74,13 +74,45 @@
     .regmark { display: block; color: currentColor; }
     .regmark circle, .regmark line { vector-effect: non-scaling-stroke; }
 
+    /* La marca es lo primero que se ve del producto — se le da todo el
+       protagonismo posible en el header: tamaño grande, entrada animada
+       al cargar y una respiración sutil en el sello que nunca se detiene. */
+    @keyframes brandMarkIn { 0% { opacity: 0; transform: translateX(-18px) scale(0.9); } 100% { opacity: 1; transform: translateX(0) scale(1); } }
+    @keyframes brandGlow {
+        0%, 100% { box-shadow: 3px 3px 0 0 var(--ink), 0 0 0 rgba(0,158,226,0); }
+        50% { box-shadow: 3px 3px 0 0 var(--ink), 0 0 16px rgba(0,158,226,0.5); }
+    }
     .brand-mark {
         display: flex;
         align-items: center;
-        gap: 0.6rem;
+        gap: 0.85rem;
+        animation: brandMarkIn 0.65s cubic-bezier(0.34,1.56,0.64,1) both;
     }
-    .brand-mark .regmark { width: 28px; height: 28px; color: var(--cyan); flex-shrink: 0; animation: miraColorCycle 14s ease-in-out infinite; }
-    .brand-mark .regmark .anim { animation: spin 20s linear infinite; transform-origin: center; }
+    .brand-mark .brand-logo-mark {
+        width: 56px; height: 56px; flex-shrink: 0; display: block; border-radius: 30%;
+        box-shadow: 3px 3px 0 0 var(--ink);
+        animation: brandGlow 3.5s ease-in-out 0.65s infinite;
+        transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    .header:hover .brand-mark .brand-logo-mark { animation: none; transform: translate(-2px, -2px) rotate(-3deg); box-shadow: 5px 5px 0 0 var(--ink), 0 0 18px rgba(0,158,226,0.55); }
+    /* Isotipo real de marca — sobre superficie oscura usa la variante de
+       impacto (chapa cyan, "B" blanca); sobre superficie clara, la
+       variante contenida (chapa oscura, "B" cyan), igual que en el
+       recurso de marca original. */
+    .brand-logo-mark .bm-bg { fill: var(--cyan); }
+    .brand-logo-mark .bm-glyph { fill: #fff; }
+    [data-theme="light"] .brand-logo-mark .bm-bg { fill: #3C3C3B; }
+    [data-theme="light"] .brand-logo-mark .bm-glyph { fill: var(--cyan); }
+
+    /* Wordmark real (letras "BRAND"/"TEST" tal como las entregó la
+       marca) reemplazando el texto genérico — sin el rectángulo de
+       fondo propio, porque ya vive sobre la superficie del header. */
+    .brand-mark .brand-wordmark { height: 56px; width: auto; display: block; margin-bottom: 0.25rem; transition: transform 0.2s ease; }
+    .header:hover .brand-mark .brand-wordmark { transform: translateX(3px); }
+    .wm-brand { fill: #fff; }
+    .wm-test { fill: var(--cyan); }
+    [data-theme="light"] .wm-brand { fill: var(--cyan); }
+    [data-theme="light"] .wm-test { fill: #3C3C3B; }
 
     .header {
         background: var(--surface);
@@ -116,8 +148,7 @@
     }
     .header-menu-toggle span { width: 15px; height: 1.6px; background: var(--text); border-radius: 1px; }
 
-    .brand-name { font-family: var(--font-display); font-size: 1.4rem; font-weight: 700; color: var(--text); letter-spacing: 0.01em; text-transform: uppercase; }
-    .brand-subtitle { font-family: var(--font-mono); font-size: 0.68rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
+    .brand-subtitle { font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
 
     .header-brand-credit {
         display: flex;
@@ -669,8 +700,8 @@
     @keyframes miraColorCycleBg { 0%, 100% { background: var(--cyan); } 33% { background: var(--magenta); } 66% { background: var(--yellow); } }
     @media (prefers-reduced-motion: reduce) {
         .login-ring .anim, .login-ring, .login-center-dot, .login-stage::before, .hero-decor,
-        .brand-mark .regmark, .brand-mark .regmark .anim, .intro-icon, .intro-icon .anim,
-        .step-badge, .upload-icon { animation: none; }
+        .intro-icon, .intro-icon .anim,
+        .step-badge, .upload-icon, .brand-mark, .brand-mark .brand-logo-mark { animation: none; }
     }
 
     .upload-area {
@@ -904,7 +935,7 @@
         justify-content: center;
         transform: rotate(-9deg);
         background: var(--bg);
-        box-shadow: 0 3px 10px rgba(0,0,0,0.35);
+        box-shadow: 3px 3px 0 0 var(--ink), 0 6px 18px rgba(0,0,0,0.35);
         z-index: 2;
     }
     .verdict-stamp::before {
@@ -1024,18 +1055,38 @@
     .color-swatch:hover .color-tooltip { display: block; }
     .color-classification { font-size: 0.8rem; color: var(--text-muted); }
 
-    .category-section { margin-bottom: 1rem; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
-    .category-header { padding: 0.65rem 0.9rem; font-weight: 600; font-size: 0.85rem; display: flex; justify-content: space-between; align-items: center; font-family: var(--font-mono); }
-    .category-body { padding: 0.9rem; background: var(--surface); }
+    /* Cada categoría hereda el color de acento fijo cat1/cat3/cat4 —
+       coincide con el orden numérico con que displayResults() itera
+       Object.keys(categories), así que nth-of-type es seguro acá. */
+    .category-section {
+        margin-bottom: 1.75rem;
+        border: 2px solid var(--cat1);
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 5px 5px 0 0 var(--cat1), 0 8px 24px rgba(0,185,198,0.14);
+        transition: box-shadow 0.2s ease;
+    }
+    .category-section:last-child { margin-bottom: 0; }
+    .category-section:nth-of-type(2) { border-color: var(--cat3); box-shadow: 5px 5px 0 0 var(--cat3), 0 8px 24px rgba(232,93,138,0.14); }
+    .category-section:nth-of-type(3) { border-color: var(--cat4); box-shadow: 5px 5px 0 0 var(--cat4), 0 8px 24px rgba(232,178,61,0.14); }
+    .category-header { padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem; display: flex; justify-content: space-between; align-items: center; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.03em; }
+    .category-body { padding: 1rem; background: var(--surface); }
 
-    .indicator-item { padding: 0.9rem; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 0.6rem; background: var(--bg); }
+    .indicator-item {
+        padding: 1rem;
+        border: 1px solid var(--border-soft);
+        border-radius: 10px;
+        margin-bottom: 0.75rem;
+        background: var(--bg);
+        box-shadow: 2px 2px 0 0 var(--border);
+    }
     .indicator-item:last-child { margin-bottom: 0; }
     .indicator-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 0.75rem; margin-bottom: 0.4rem; }
     .indicator-name { font-weight: 600; font-size: 0.85rem; }
     .indicator-definition { font-size: 0.75rem; color: var(--text-muted); }
     .indicator-score { font-family: var(--font-mono); font-size: 1.15rem; font-weight: 600; white-space: nowrap; }
-    .score-bar { height: 5px; background: var(--border); border-radius: 3px; overflow: hidden; margin: 0.4rem 0; }
-    .score-fill { height: 100%; transition: width 0.8s; }
+    .score-bar { height: 8px; background: var(--border); border-radius: 5px; overflow: hidden; margin: 0.5rem 0; }
+    .score-fill { height: 100%; border-radius: 5px; transition: width 0.8s cubic-bezier(0.2,0.8,0.2,1); box-shadow: inset 0 1px 0 rgba(255,255,255,0.25); }
     .indicator-justification { font-size: 0.76rem; color: var(--text-muted); margin-top: 0.25rem; line-height: 1.55; max-width: 65ch; }
     .indicator-detail { font-size: 0.7rem; color: var(--text-muted); margin-top: 0.3rem; padding-left: 0.6rem; border-left: 2px solid var(--border); }
 
@@ -1089,20 +1140,23 @@
     .typology-select-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; }
     @media (max-width: 600px) { .typology-select-grid { grid-template-columns: 1fr; } }
     .typology-select-card {
-        background: var(--bg); border: 1px solid var(--border); border-radius: 10px;
-        padding: 0.75rem 0.85rem; cursor: pointer; transition: border-color 0.15s, background 0.15s;
+        background: var(--bg); border: 2px solid var(--border); border-radius: 10px;
+        padding: 0.85rem 0.95rem; cursor: pointer;
+        transition: border-color 0.15s, background 0.15s, box-shadow 0.15s, transform 0.15s;
     }
-    .typology-select-card:hover { border-color: var(--cyan); }
-    .typology-select-card.selected { border-color: var(--cyan); background: var(--surface-hover); }
+    .typology-select-card:hover { border-color: var(--cyan); box-shadow: 3px 3px 0 0 var(--cyan); transform: translate(-1px, -1px); }
+    .typology-select-card.selected { border-color: var(--cyan); background: var(--surface-hover); box-shadow: 4px 4px 0 0 var(--cyan); }
     .typology-select-card.auto { grid-column: 1 / -1; }
     .typology-select-card .tsc-name { font-weight: 600; font-size: 0.85rem; margin-bottom: 0.3rem; }
     .typology-select-card.selected .tsc-name { color: var(--cyan); }
     .typology-select-card .tsc-desc { font-size: 0.74rem; color: var(--text-muted); line-height: 1.5; max-width: 65ch; }
 
     .notification {
-        position: fixed; top: 14px; right: 14px; background: var(--surface); border: 1px solid var(--cyan);
-        border-left: 3px solid var(--cyan); color: var(--text); padding: 0.65rem 0.9rem; border-radius: 8px;
-        font-size: 0.78rem; transform: translateX(420px); transition: transform 0.3s; z-index: 2000; max-width: 320px;
+        position: fixed; top: 14px; right: 14px; background: var(--surface); border: 2px solid var(--cyan);
+        color: var(--text); padding: 0.75rem 1rem; border-radius: 8px;
+        font-size: 0.8rem; font-weight: 500;
+        box-shadow: 4px 4px 0 0 var(--ink), 0 8px 24px rgba(0,0,0,0.3);
+        transform: translateX(420px); transition: transform 0.3s cubic-bezier(0.2,0.8,0.2,1); z-index: 2000; max-width: 320px;
     }
     .notification.show { transform: translateX(0); }
 
