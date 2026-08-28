@@ -4,9 +4,9 @@
 // activó el interruptor en app_settings; si no, responde enabled:false
 // sin exponer ningún número.
 
-const { createClient } = require('@supabase/supabase-js');
+import { createClient } from '@supabase/supabase-js';
 
-module.exports = async function handler(req, res) {
+export default async function handler(req, res) {
     const supabaseAdmin = createClient(
         process.env.SUPABASE_URL,
         process.env.SUPABASE_SERVICE_ROLE_KEY

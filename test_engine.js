@@ -1,14 +1,18 @@
 // test_engine.js — Pruebas de regresión del motor de BrandTest.
-// Se extraen las funciones puras directamente del <script> de index.html
-// (no una copia pegada aparte), así que nunca se desalinean con lo publicado.
-// Uso: node test_engine.js  (desde la misma carpeta que index.html)
+// Se extraen las funciones puras directamente del cuerpo de initLegacyApp()
+// en src/legacy/legacyApp.js (no una copia pegada aparte), así que nunca
+// se desalinean con lo publicado.
+// Uso: node test_engine.js  (desde la raíz del proyecto)
 
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-const html = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
-const match = html.match(/<script>([\s\S]*)<\/script>/);
-if (!match) throw new Error('No se encontró el bloque <script> en index.html');
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+const engineSource = fs.readFileSync(path.join(__dirname, 'src/legacy/legacyApp.js'), 'utf8');
+const match = engineSource.match(/export function initLegacyApp\(\)\s*\{([\s\S]*)\}\s*$/);
+if (!match) throw new Error('No se encontró el cuerpo de initLegacyApp() en src/legacy/legacyApp.js');
 const scriptBody = match[1];
 
 // Stub mínimo de `document`: el script registra un listener de
@@ -76,7 +80,15 @@ function fakeD(overrides) {
         hasFondo: false, largestAreaRatio: 0.51, inkRatio: 0.06,
         colorCount: 2,
     };
-    return Object.assign(base, overrides);
+    const merged = Object.assign(base, overrides);
+    // Espeja el cálculo real (sección "Inteligibilidad y Pregnancia" de la
+    // memoria técnica): el bloque de texto cuenta como una sola unidad
+    // conceptual, sin importar su largo — evaluateIndicatorsReal() asume
+    // que este campo ya viene calculado, igual que en analyzeImage().
+    if (merged.effectiveComponentCount === undefined) {
+        merged.effectiveComponentCount = (merged.textGroup.length > 0 ? 1 : 0) + merged.extras.length;
+    }
+    return merged;
 }
 
 // ============================================================
@@ -264,4 +276,10 @@ assert(M.getInitials('') === '?', 'nombre vacío debe devolver "?"');
 
 // ============================================================
 console.log(`\n${pass} pruebas OK, ${fail} fallaron.`);
-if (fail > 0) process.exit(1);
+// Salida inmediata y síncrona: initLegacyApp() también dispara el arranque
+// completo de la app (startLegacyApp(), sin esperar) al evaluar su cuerpo,
+// y los stubs de este harness son deliberadamente mínimos (solo cubren las
+// funciones puras que se prueban arriba) — sin esto, ese arranque de fondo
+// termina lanzando un rechazo de promesa no manejado sobre un DOM que no
+// existe, después de que el resultado real ya se imprimió.
+process.exit(fail > 0 ? 1 : 0);

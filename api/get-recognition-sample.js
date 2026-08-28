@@ -3,9 +3,9 @@
 // no respondió, con una URL firmada temporal (el bucket es privado) —
 // nunca revela la tipología correcta, eso solo lo sabe el servidor.
 
-const { createClient } = require('@supabase/supabase-js');
+import { createClient } from '@supabase/supabase-js';
 
-module.exports = async function handler(req, res) {
+export default async function handler(req, res) {
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Método no permitido' });
     }

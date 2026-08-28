@@ -1,0 +1,17 @@
+{
+  "name": "BrandTest",
+  "short_name": "BrandTest",
+  "description": "Valoracion tecnica de marcas graficas.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#15130F",
+  "theme_color": "#15130F",
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
