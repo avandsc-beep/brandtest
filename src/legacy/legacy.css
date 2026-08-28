@@ -285,7 +285,7 @@
         letter-spacing: 0.015em;
         margin-bottom: 1rem;
         padding-bottom: 0.65rem;
-        border-bottom: 1px solid var(--border);
+        border-bottom: 3px solid var(--cyan);
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -700,13 +700,18 @@
         width: 100%;
         padding: 0.65rem 0.75rem;
         background: var(--bg);
-        border: 1px solid var(--border);
+        border: 2px solid var(--border);
         border-radius: 8px;
         color: var(--text);
         font-family: var(--font-body);
         font-size: 0.9rem;
+        transition: border-color 0.15s, box-shadow 0.15s;
     }
-    .form-input:focus, .form-textarea:focus, .form-select:focus { outline: none; border-color: var(--cyan); }
+    .form-input:focus, .form-textarea:focus, .form-select:focus {
+        outline: none;
+        border-color: var(--cyan);
+        box-shadow: 3px 3px 0 0 var(--cyan);
+    }
     .whatsapp-input-group { display: flex; gap: 0.5rem; }
     .whatsapp-input-group #whatsappCountryCode { flex: 0 0 148px; text-overflow: ellipsis; }
     .whatsapp-input-group #userWhatsapp { flex: 1; }
@@ -717,7 +722,15 @@
     }
 
     /* ===== Modal "Mi cuenta" ===== */
-    .profile-modal-card { max-width: 440px; width: 92%; max-height: 88vh; max-height: 88dvh; overflow-y: auto; }
+    .profile-modal-card { max-width: 440px; width: 92%; max-height: 88vh; max-height: 88dvh; overflow-y: auto; position: relative; }
+    .profile-modal-card::before {
+        content: '';
+        display: block;
+        height: 6px;
+        margin: -1.5rem -1.5rem 1.5rem;
+        border-radius: 8px 8px 0 0;
+        background: linear-gradient(90deg, var(--cyan), var(--magenta), var(--yellow));
+    }
     .profile-section { padding-top: 1rem; margin-top: 0.25rem; border-top: 1px solid var(--border-soft); }
     .profile-section-title {
         font-family: var(--font-mono);
@@ -900,11 +913,20 @@
         font-size: 0.68rem;
         color: var(--text-muted);
         background: var(--bg);
-        border: 1px solid var(--border);
+        border: 2px solid var(--border);
         border-radius: 6px;
         padding: 0.3rem 0.55rem;
     }
     .metric-chip strong { color: var(--text); font-weight: 600; }
+
+    /* Chips de paquetes en "Mi cuenta": cada uno con su propia placa de
+       color en vez de una fila plana toda igual. */
+    .profile-package-chips .metric-chip { border-width: 2px; transition: transform 0.1s, box-shadow 0.1s; }
+    .profile-package-chips .metric-chip:nth-child(3n+1) { border-color: var(--cyan); box-shadow: 2px 2px 0 0 var(--cyan); }
+    .profile-package-chips .metric-chip:nth-child(3n+2) { border-color: var(--magenta); box-shadow: 2px 2px 0 0 var(--magenta); }
+    .profile-package-chips .metric-chip:nth-child(3n+3) { border-color: var(--yellow); box-shadow: 2px 2px 0 0 var(--yellow); }
+    .profile-package-chips .metric-chip:hover { transform: translate(-1px, -1px); }
+    @media (prefers-reduced-motion: reduce) { .profile-package-chips .metric-chip:hover { transform: none; } }
 
     .color-palette { display: flex; gap: 0.5rem; flex-wrap: wrap; margin: 0.75rem 0; }
     .color-swatch {
