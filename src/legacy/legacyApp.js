@@ -410,23 +410,69 @@
         // rompía el ancho del selector. El código de discado va primero para
         // que sea lo primero visible aunque el selector quede angosto.
         const whatsappCountryCodes = [
-            { code: '591', label: '+591 Bolivia' },
-            { code: '54', label: '+54 Argentina' },
-            { code: '55', label: '+55 Brasil' },
-            { code: '56', label: '+56 Chile' },
-            { code: '57', label: '+57 Colombia' },
-            { code: '51', label: '+51 Perú' },
-            { code: '598', label: '+598 Uruguay' },
-            { code: '595', label: '+595 Paraguay' },
-            { code: '593', label: '+593 Ecuador' },
-            { code: '52', label: '+52 México' },
-            { code: '34', label: '+34 España' },
-            { code: '1', label: '+1 EE.UU./Canadá' }
+            { code: '591', iso: 'BO', label: '+591 Bolivia' },
+            { code: '54', iso: 'AR', label: '+54 Argentina' },
+            { code: '55', iso: 'BR', label: '+55 Brasil' },
+            { code: '56', iso: 'CL', label: '+56 Chile' },
+            { code: '57', iso: 'CO', label: '+57 Colombia' },
+            { code: '51', iso: 'PE', label: '+51 Perú' },
+            { code: '598', iso: 'UY', label: '+598 Uruguay' },
+            { code: '595', iso: 'PY', label: '+595 Paraguay' },
+            { code: '593', iso: 'EC', label: '+593 Ecuador' },
+            { code: '52', iso: 'MX', label: '+52 México' },
+            { code: '34', iso: 'ES', label: '+34 España' },
+            { code: '1', iso: 'US', label: '+1 EE.UU./Canadá' }
         ];
 
+        // Selector de país propio (en vez del <select> nativo, que el
+        // navegador renderiza con su propio menú del sistema operativo y
+        // no se puede estilizar). #whatsappCountryCode sigue existiendo
+        // como input oculto — saveWhatsapp() sigue leyendo su .value igual
+        // que antes, sin tocar esa parte de la lógica.
+        function selectCountry(code) {
+            const country = whatsappCountryCodes.find(c => c.code === code) || whatsappCountryCodes[0];
+            document.getElementById('whatsappCountryCode').value = country.code;
+            document.getElementById('countrySelectBadge').textContent = country.iso;
+            document.getElementById('countrySelectLabel').textContent = country.label;
+            document.querySelectorAll('#countrySelectList .country-select-option').forEach(el => {
+                const isSelected = el.dataset.code === country.code;
+                el.setAttribute('aria-selected', String(isSelected));
+                el.classList.toggle('selected', isSelected);
+            });
+        }
+
+        function closeCountrySelect() {
+            document.getElementById('countrySelect').classList.remove('open');
+            document.getElementById('countrySelectTrigger').setAttribute('aria-expanded', 'false');
+        }
+
         function renderWhatsappCountrySelect() {
-            const select = document.getElementById('whatsappCountryCode');
-            select.innerHTML = whatsappCountryCodes.map(c => '<option value="' + c.code + '">' + c.label + '</option>').join('');
+            const list = document.getElementById('countrySelectList');
+            list.innerHTML = whatsappCountryCodes.map(c =>
+                '<li class="country-select-option" role="option" data-code="' + c.code + '" tabindex="-1">' +
+                '<span class="country-select-badge">' + c.iso + '</span>' +
+                '<span class="country-select-option-label">' + c.label + '</span>' +
+                '</li>'
+            ).join('');
+            list.querySelectorAll('.country-select-option').forEach(el => {
+                el.addEventListener('click', () => { selectCountry(el.dataset.code); closeCountrySelect(); });
+            });
+            selectCountry(whatsappCountryCodes[0].code);
+
+            const wrap = document.getElementById('countrySelect');
+            const trigger = document.getElementById('countrySelectTrigger');
+            trigger.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const willOpen = !wrap.classList.contains('open');
+                wrap.classList.toggle('open', willOpen);
+                trigger.setAttribute('aria-expanded', String(willOpen));
+            });
+            document.addEventListener('click', (e) => {
+                if (wrap.classList.contains('open') && !wrap.contains(e.target)) closeCountrySelect();
+            });
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') closeCountrySelect();
+            });
         }
 
         // Separa un número guardado completo (ej. "59171234567") en código +
@@ -438,7 +484,7 @@
                 .slice().sort((a, b) => b.code.length - a.code.length)
                 .find(c => full.startsWith(c.code));
             if (match) {
-                document.getElementById('whatsappCountryCode').value = match.code;
+                selectCountry(match.code);
                 document.getElementById('userWhatsapp').value = full.slice(match.code.length);
             } else {
                 document.getElementById('userWhatsapp').value = full;

@@ -713,13 +713,73 @@
         box-shadow: 3px 3px 0 0 var(--cyan);
     }
     .whatsapp-input-group { display: flex; gap: 0.5rem; }
-    .whatsapp-input-group #whatsappCountryCode { flex: 0 0 148px; text-overflow: ellipsis; }
+    .whatsapp-input-group .country-select { flex: 0 0 158px; }
     .whatsapp-input-group #userWhatsapp { flex: 1; }
     @media (max-width: 420px) {
         .whatsapp-input-group { flex-wrap: wrap; }
-        .whatsapp-input-group #whatsappCountryCode { flex: 1 1 100%; }
+        .whatsapp-input-group .country-select { flex: 1 1 100%; }
         .whatsapp-input-group #userWhatsapp { flex: 1 1 100%; }
     }
+
+    /* ===== Selector de país propio (reemplaza el <select> nativo) ===== */
+    .country-select { position: relative; }
+    .country-select-trigger {
+        display: flex; align-items: center; gap: 0.5rem;
+        width: 100%;
+        padding: 0.6rem 0.65rem;
+        background: var(--bg);
+        border: 2px solid var(--border);
+        border-radius: 8px;
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .country-select.open .country-select-trigger,
+    .country-select-trigger:focus-visible { outline: none; border-color: var(--cyan); box-shadow: 3px 3px 0 0 var(--cyan); }
+    .country-select-badge {
+        display: inline-flex; align-items: center; justify-content: center;
+        min-width: 26px; height: 20px; padding: 0 0.3rem;
+        background: var(--cyan); color: var(--bg);
+        border-radius: 5px;
+        font-family: var(--font-mono); font-size: 0.62rem; font-weight: 700;
+        flex-shrink: 0;
+    }
+    .country-select-label { flex: 1; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .country-select-chevron { color: var(--text-muted); flex-shrink: 0; transition: transform 0.15s; }
+    .country-select.open .country-select-chevron { transform: rotate(180deg); }
+
+    .country-select-list {
+        display: none;
+        list-style: none;
+        position: absolute;
+        top: calc(100% + 0.4rem);
+        left: 0;
+        min-width: 190px;
+        max-height: 260px;
+        overflow-y: auto;
+        background: var(--surface);
+        border: 2px solid var(--border);
+        border-radius: 10px;
+        box-shadow: 5px 5px 0 0 var(--magenta), 0 10px 30px rgba(0,0,0,0.3);
+        padding: 0.4rem;
+        z-index: 130;
+    }
+    .country-select.open .country-select-list { display: block; }
+    .country-select-option {
+        display: flex; align-items: center; gap: 0.55rem;
+        padding: 0.45rem 0.5rem;
+        border-radius: 6px;
+        font-size: 0.83rem;
+        cursor: pointer;
+        transition: background 0.12s;
+    }
+    .country-select-option:hover { background: var(--surface-hover); }
+    .country-select-option.selected { background: rgba(0,185,198,0.14); }
+    .country-select-option.selected .country-select-option-label { color: var(--cyan); font-weight: 600; }
+    .country-select-option .country-select-badge { background: var(--border); color: var(--text); }
+    .country-select-option.selected .country-select-badge { background: var(--cyan); color: var(--bg); }
 
     /* ===== Modal "Mi cuenta" ===== */
     .profile-modal-card { max-width: 440px; width: 92%; max-height: 88vh; max-height: 88dvh; overflow-y: auto; position: relative; }
