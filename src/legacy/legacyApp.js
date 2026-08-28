@@ -405,19 +405,23 @@
         // Códigos de país para el campo de WhatsApp — Bolivia primero por
         // contexto, seguido de los países más comunes entre quienes usarían
         // esta herramienta.
+        // Sin emoji de bandera: su render es inconsistente entre sistemas
+        // operativos (en Windows suele caer a texto plano tipo "BO"), lo que
+        // rompía el ancho del selector. El código de discado va primero para
+        // que sea lo primero visible aunque el selector quede angosto.
         const whatsappCountryCodes = [
-            { code: '591', label: '🇧🇴 Bolivia +591' },
-            { code: '54', label: '🇦🇷 Argentina +54' },
-            { code: '55', label: '🇧🇷 Brasil +55' },
-            { code: '56', label: '🇨🇱 Chile +56' },
-            { code: '57', label: '🇨🇴 Colombia +57' },
-            { code: '51', label: '🇵🇪 Perú +51' },
-            { code: '598', label: '🇺🇾 Uruguay +598' },
-            { code: '595', label: '🇵🇾 Paraguay +595' },
-            { code: '593', label: '🇪🇨 Ecuador +593' },
-            { code: '52', label: '🇲🇽 México +52' },
-            { code: '34', label: '🇪🇸 España +34' },
-            { code: '1', label: '🇺🇸 EE.UU./Canadá +1' }
+            { code: '591', label: '+591 Bolivia' },
+            { code: '54', label: '+54 Argentina' },
+            { code: '55', label: '+55 Brasil' },
+            { code: '56', label: '+56 Chile' },
+            { code: '57', label: '+57 Colombia' },
+            { code: '51', label: '+51 Perú' },
+            { code: '598', label: '+598 Uruguay' },
+            { code: '595', label: '+595 Paraguay' },
+            { code: '593', label: '+593 Ecuador' },
+            { code: '52', label: '+52 México' },
+            { code: '34', label: '+34 España' },
+            { code: '1', label: '+1 EE.UU./Canadá' }
         ];
 
         function renderWhatsappCountrySelect() {
