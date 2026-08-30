@@ -188,18 +188,28 @@
         gap: 0.75rem;
     }
 
-    .header-menu { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
-    .header-menu-toggle {
+    .header-menu {
         display: none;
+        width: 100%;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.6rem;
+        margin-top: 0.75rem;
+        padding-top: 0.75rem;
+        border-top: 1px solid rgba(255,255,255,0.25);
+    }
+    .header-menu.open { display: flex; }
+    .header-menu-toggle {
+        display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
         gap: 4px;
         width: 34px; height: 34px;
-        background: transparent; border: 1px solid var(--border); border-radius: 8px;
+        background: transparent; border: 1px solid rgba(255,255,255,0.4); border-radius: 8px;
         cursor: pointer; padding: 0; flex-shrink: 0;
     }
-    .header-menu-toggle span { width: 15px; height: 1.6px; background: var(--text); border-radius: 1px; }
+    .header-menu-toggle span { width: 15px; height: 1.6px; background: #fff; border-radius: 1px; }
 
     .brand-name { font-family: var(--font-display); font-size: 1.4rem; font-weight: 700; color: var(--text); letter-spacing: 0.01em; }
     .brand-name-accent { color: var(--cyan); }
@@ -212,17 +222,17 @@
     .wordmark-inline { display: inline-block; }
     .footer-text .wordmark-svg { height: 1.5em; }
     .brand-subtitle { font-family: var(--font-mono); font-size: 0.68rem; color: rgba(255,255,255,0.85); text-transform: uppercase; letter-spacing: 0.06em; }
-    .author-name { font-weight: 600; color: var(--text-muted); font-size: 0.8rem; }
-    .author-title { font-size: 0.72rem; color: var(--text-muted); opacity: 0.8; }
+    .author-name { font-weight: 600; color: rgba(255,255,255,0.9); font-size: 0.8rem; }
+    .author-title { font-size: 0.72rem; color: rgba(255,255,255,0.7); }
     .header-brand-credit { display: flex; align-items: center; gap: 0.6rem; }
     .header-brand-logo { height: 20px; width: auto; opacity: 0.92; }
 
     .user-section { display: flex; align-items: center; gap: 0.75rem; }
     .user-info { text-align: right; }
     .user-avatar { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border); flex-shrink: 0; }
-    .user-name { font-size: 0.8rem; font-weight: 600; }
+    .user-name { font-size: 0.8rem; font-weight: 600; color: #fff; }
     .user-credits { font-family: var(--font-mono); font-size: 0.75rem; color: var(--yellow); font-weight: 600; }
-    .user-plan { font-size: 0.7rem; color: var(--text-muted); }
+    .user-plan { font-size: 0.7rem; color: rgba(255,255,255,0.75); }
 
     .btn {
         padding: 0.65rem 1.3rem;
@@ -275,6 +285,32 @@
         justify-content: space-between;
         gap: 0.5rem;
     }
+    /* Secciones sin tarjeta — el flujo principal (test de reconocimiento,
+       imagen de marca, contexto de marca) flota directo sobre el fondo,
+       con el ícono/insignia y el título centrados, separadas por una
+       línea celeste delgada — no un borde de tarjeta genérico. */
+    .card-flat { background: transparent; border: none; padding: 0; text-align: center; box-shadow: none; }
+    .card-flat .card-title { display: block; border-bottom: none; padding-bottom: 0; justify-content: center; margin-bottom: 0.5rem; }
+    .flat-icon-badge {
+        width: 58px; height: 58px;
+        border: 1.5px solid var(--text);
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        margin: 0 auto 0.85rem;
+    }
+    .flat-icon-badge svg { width: 26px; height: 26px; }
+    .flat-icon-badge.step-number { font-family: var(--font-mono); font-size: 1.5rem; font-weight: 700; color: var(--text); }
+    .flat-description {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        text-align: center;
+        max-width: 460px;
+        margin: 0 auto 1.25rem;
+        text-transform: none;
+        line-height: 1.55;
+    }
+    .section-divider { height: 2px; width: 130px; background: var(--header-blue-end); margin: 2rem auto; border-radius: 2px; border: none; }
+
     .step-badge {
         display: inline-flex; align-items: center; justify-content: center;
         width: 24px; height: 24px; border-radius: 50%;
@@ -283,7 +319,8 @@
         font-family: var(--font-mono); font-size: 0.72rem; font-weight: 700;
         flex-shrink: 0;
     }
-    #uploadCard, #contextCard { border-left: 3px solid var(--cyan); }
+    /* #uploadCard, #contextCard ya no llevan borde lateral — con
+       card-flat no tienen fondo ni borde de tarjeta que acentuar. */
     .card-title .eyebrow {
         font-family: var(--font-mono);
         font-size: 0.65rem;
@@ -724,7 +761,7 @@
     .diagnostic-feedback-buttons { display: flex; gap: 0.4rem; }
     .diagnostic-feedback-buttons .btn.selected { border-color: var(--cyan); color: var(--cyan); }
 
-    .footer { background: var(--surface); border-top: 1px solid var(--border); padding: 1.25rem 1.5rem; text-align: center; margin-top: 1.5rem; }
+    .footer { display: none; background: var(--surface); border-top: 1px solid var(--border); padding: 1.25rem 1.5rem; text-align: center; margin-top: 1.5rem; }
     .footer p { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.15rem; }
     .footer strong { color: var(--text); }
 
@@ -793,21 +830,9 @@
     @media (max-width: 700px) {
         .container { padding: 1rem 0.85rem 2.5rem; }
         .header-content { justify-content: space-between; }
-        .header-menu-toggle { display: flex; }
-        .header-menu {
-            display: none;
-            width: 100%;
-            flex-direction: column;
-            align-items: stretch;
-            gap: 0.6rem;
-            margin-top: 0.75rem;
-            padding-top: 0.75rem;
-            border-top: 1px solid var(--border);
-        }
-        .header-menu.open { display: flex; }
         .user-section { flex-direction: column; align-items: stretch; }
         .user-info { text-align: center; }
-        .header-brand-credit { justify-content: center; padding-top: 0.6rem; border-top: 1px solid var(--border); }
+        .header-brand-credit { justify-content: center; padding-top: 0.6rem; border-top: 1px solid rgba(255,255,255,0.25); }
         .btn-group { flex-direction: column; }
         .btn { width: 100%; }
         .control-row { flex-direction: column; align-items: flex-start; }
@@ -820,6 +845,10 @@
     /* ===== Impresión / PDF ===== */
     @media print {
         @page { size: A4; margin: 12mm 14mm; }
+        /* El pie de informe (con autor y fecha) solo tiene sentido en el
+           documento impreso — se mantiene oculto en pantalla y se muestra
+           únicamente acá. */
+        .footer { display: block !important; }
         /* Los navegadores omiten colores de fondo al imprimir por defecto
            (para ahorrar tinta). Sin esto, la paleta cromática, las barras
            por categoría y las barras de puntaje se imprimen en blanco. */
@@ -930,10 +959,6 @@
     <header class="header">
         <div class="header-content">
             <div class="brand-mark">
-                <svg class="brand-icon" viewBox="0 0 124.12 124.12" aria-hidden="true">
-                    <rect fill="#d9e021" x="0" width="124.12" height="124.12" rx="42.58" ry="42.58"/>
-                    <path fill="#3c3c3b" d="M85.43,64.78l-4.77-4.28c3.55-2.99,5.58-7.37,5.58-11.99,0-4.19-1.63-8.13-4.6-11.1-2.97-2.97-6.91-4.6-11.09-4.6H35.59l-.76-.43-.43,59.35h41.74c12.14,0,17.57-7.29,17.57-14.52,0-2.62-.94-6.4-8.29-12.44Zm-14.89-22.99c3.7,0,6.72,3.01,6.72,6.72,0,2.87-1.83,5.42-4.7,6.38l-1.08-.1-15.5-13h14.57Zm-26.74-.52l15.89,13.97h-1.13l-14.76-.43v-13.54Zm32.34,41.5l-26.83-.38-5.52,8.74v-26.93l27.1,.1,8.68,7.03c.15,.11,3.68,2.85,3.68,6.15-.12,2.46-1.04,5.28-7.12,5.28Z"/>
-                </svg>
                 <div>
                     <div class="brand-name"><svg class="wordmark-svg wordmark-onheader" viewBox="0 0 476.41 70.28" xmlns="http://www.w3.org/2000/svg" aria-label="BRANDEX"><path fill="currentColor" d="M125.56,69.99l-16.87-27.41-20.38-.4v27.81h-13.48V.89h40.82c10.91,0,19.78,8.88,19.78,19.79v1.72c0,7.66-4.53,14.74-11.55,18.05l-.84,.39,17.02,29.15h-14.5Zm-11.05-40.78h1.14c3.75,0,6.81-3.05,6.81-6.81v-1.72c0-3.82-2.99-6.81-6.81-6.81h-11.94l10.8,15.34Zm-26.2,0h13.27l-10.43-14.98-2-.36h-.84v15.34Z"/><path fill="currentColor" d="M143.28,69.99l29.5-57.38h-24.22V.89h31.2l37.41,69.1h-15.17l-8.7-16.13-.8,.82c-9.24,9.44-22,15.02-35.02,15.32h-14.21Zm22.75-14.38l1.87-.56c7.06-2.1,12.81-6.37,18.1-13.44l.33-.43-6.79-12.52-13.5,26.95Z"/><polygon fill="currentColor" points="221.31 69.99 221.31 .79 235.69 .79 263.12 58.63 265.51 58.63 265.51 .79 278.14 .79 278.14 69.89 255.39 69.99 235.67 27.5 234.06 27.86 234.06 69.99 221.31 69.99"/><path fill="currentColor" d="M292.53,69.89V.89h26.26c4.59,0,8.58,.85,12.91,2.76,4.25,1.73,7.96,4.21,11.06,7.4,3.16,3.15,5.65,6.85,7.42,10.98,1.76,4.22,2.66,8.73,2.66,13.42s-.9,9.2-2.66,13.43c-1.76,4.11-4.25,7.8-7.41,10.95-3.1,3.21-6.81,5.69-11.04,7.4-4.16,1.84-8.67,2.77-13.43,2.77h0l-25.76-.09Zm13.48-11.36h12.27c6.11,0,11.93-2.38,16.37-6.71,4.34-4.45,6.73-10.26,6.73-16.38s-2.38-11.93-6.71-16.37c-4.45-4.34-10.26-6.73-16.38-6.73h-12.27V58.53Z"/><path fill="var(--cyan)" d="M359.95,69.99V.89h50.36V6.62c0,28.76-8.08,37.07-36.04,37.07h-.84v14.84h36.68v11.45h-50.16Zm13.48-37.75h.84c17.99,0,24.38-2.88,24.38-19.05v-.84h-25.23v19.89Z"/><polygon fill="var(--cyan)" points="461.12 69.99 446.87 41.17 442.79 41.17 428.43 69.99 413.16 69.99 431.21 35.84 413.14 .89 428.43 .89 442.79 29.72 446.87 29.72 461.12 .89 476.39 .89 458.34 35.05 476.41 69.99 461.12 69.99"/><path fill="currentColor" d="M60.41,38.36l-5.65-5.07c4.2-3.54,6.61-8.72,6.61-14.2,0-4.96-1.94-9.63-5.45-13.14-3.51-3.51-8.18-5.45-13.13-5.45H1.4L.51,0,0,70.27H49.42c14.37,0,20.81-8.63,20.81-17.19,0-3.1-1.12-7.58-9.82-14.72ZM42.78,11.14c4.38,0,7.95,3.57,7.95,7.95,0,3.4-2.17,6.42-5.56,7.55l-1.28-.12L25.53,11.13h17.25Zm-31.66-.61L29.94,27.05h-1.34l-17.47-.51V10.51ZM49.42,59.65l-31.76-.45-6.53,10.35v-31.88l32.08,.12,10.28,8.33c.18,.14,4.36,3.38,4.36,7.28-.14,2.91-1.23,6.25-8.43,6.25Z"/></svg></div>
                     <div class="brand-subtitle">Validación de Marcas Gráficas</div>
@@ -1220,19 +1245,38 @@
         <!-- MAIN APP -->
         <div id="mainApp" style="display:none;">
 
-            <div class="card secondary-card" id="recognitionCard">
+            <div class="card card-flat" id="recognitionCard">
+                <div class="flat-icon-badge">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="1.8" aria-hidden="true">
+                        <path d="M4 8 L4 18 Q4 20 6 20 L18 20 Q20 20 20 18 L20 8" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M4 8 L2 5 Q2 4 3 4 L21 4 Q22 4 22 5 L20 8 Z" stroke-linecap="round" stroke-linejoin="round"/>
+                        <line x1="4" y1="8" x2="20" y2="8" stroke-linecap="round"/>
+                        <text x="12" y="16.5" font-size="8" font-weight="700" text-anchor="middle" fill="var(--cyan)" stroke="none">?</text>
+                    </svg>
+                </div>
                 <h2 class="card-title">Test de Reconocimiento <span class="credit-badge">+1 crédito</span></h2>
-                <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:0.75rem; text-transform:none;">Adivina la tipología de una marca real del banco de calibración. Cada muestra solo se puede responder una vez.</p>
+                <p class="flat-description">Adivina la tipología de una marca real del banco de calibración. Cada muestra solo se puede responder una vez.</p>
                 <div id="recognitionContent">
                     <button class="btn btn-accent" id="recognitionStartBtn">Comenzar</button>
                 </div>
             </div>
 
-            <div class="card" id="uploadCard">
-                <h2 class="card-title"><span class="step-badge">1</span>Imagen de la Marca</h2>
+            <div class="section-divider"></div>
+
+            <div class="card card-flat" id="uploadCard">
+                <div class="flat-icon-badge step-number">1</div>
+                <h2 class="card-title">Imagen de la Marca</h2>
+                <p class="flat-description">Sube una fotografía o captura de la marca que quieres evaluar.</p>
                 <div class="upload-area" id="uploadArea" role="button" tabindex="0" aria-label="Subir imagen de la marca, hacer clic o soltar un archivo aquí">
-                    <p class="upload-text">Sube tu imagen aquí</p>
-                    <p class="upload-subtext">Arrastra, suelta o haz clic para seleccionar</p>
+                    <svg viewBox="0 0 24 24" width="42" height="42" fill="none" stroke="var(--text-muted)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="14.31" y1="8" x2="20.05" y2="17.94"/>
+                        <line x1="9.69" y1="8" x2="21.17" y2="8"/>
+                        <line x1="7.38" y1="12" x2="13.12" y2="2.06"/>
+                        <line x1="9.69" y1="16" x2="3.95" y2="6.06"/>
+                        <line x1="14.31" y1="16" x2="2.83" y2="16"/>
+                        <line x1="16.62" y1="12" x2="10.88" y2="21.94"/>
+                    </svg>
                 </div>
                 <input type="file" id="fileInput" accept="image/*" style="display:none;" aria-hidden="true">
                 <div class="btn-group btn-group-split">
@@ -1284,12 +1328,15 @@
                 </div>
             </div>
 
-            <div class="card" id="contextCard">
-                <h2 class="card-title"><span class="step-badge">2</span>Contexto de la Marca</h2>
-                <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:1rem; text-transform:none;">
+            <div class="section-divider"></div>
+
+            <div class="card card-flat" id="contextCard">
+                <div class="flat-icon-badge step-number">2</div>
+                <h2 class="card-title">Contexto de la Marca</h2>
+                <p class="flat-description">
                     Estos datos identifican la marca en el informe y te dan contexto propio para leer el resultado. Los 6 indicadores automáticos se calculan solo sobre la imagen — sector, competencia y atributos aún no alimentan el puntaje (son parte de los 8 indicadores del marco de Chaves y Belluccia que todavía no medimos).
                 </p>
-                <div class="form-group">
+                <div class="form-group" style="text-align:left;">
                     <label for="brandName">Nombre de la marca</label>
                     <input type="text" class="form-input" id="brandName" placeholder="Nombre">
                 </div>
