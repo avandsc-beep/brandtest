@@ -131,7 +131,7 @@
         animation: splashFadeIn 0.7s ease;
     }
     .splash-wordmark { width: min(240px, 60vw); height: auto; }
-    .splash-icon-wrap { animation: splashPulse 1.6s cubic-bezier(0.45,0,0.55,1) infinite; }
+    .splash-icon-wrap { animation: splashPulse 3.6s cubic-bezier(0.45,0,0.55,1) infinite; }
     .splash-icon { width: 96px; height: 96px; filter: drop-shadow(0 6px 18px rgba(0,0,0,0.25)); }
     .splash-tagline {
         font-family: var(--font-mono);
@@ -146,8 +146,8 @@
         to { opacity: 1; transform: translateY(0); }
     }
     @keyframes splashPulse {
-        0%, 100% { transform: scale(0.94); opacity: 0.85; }
-        50% { transform: scale(1.04); opacity: 1; }
+        0%, 100% { transform: scale(0.86); opacity: 0.65; }
+        50% { transform: scale(1.1); opacity: 1; }
     }
 
     .header {
@@ -316,9 +316,19 @@
         border-radius: 50%;
         display: flex; align-items: center; justify-content: center;
         margin: 0 auto 0.85rem;
+        animation: iconBreathe 3s ease-in-out infinite;
     }
     .flat-icon-badge svg { width: 26px; height: 26px; }
     .flat-icon-badge.step-number { font-family: var(--font-mono); font-size: 1.5rem; font-weight: 700; color: var(--text); }
+    @keyframes iconBreathe {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+    }
+    .upload-area svg { animation: apertureIdle 9s linear infinite; }
+    @keyframes apertureIdle {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
     .flat-description {
         font-size: 0.85rem;
         color: var(--text-muted);
@@ -479,7 +489,7 @@
     }
     .login-icon-wrap {
         width: 100px; height: 100px; position: absolute; z-index: 1;
-        animation: splashPulse 2.4s ease-in-out infinite;
+        animation: splashPulse 4.4s ease-in-out infinite;
     }
     .login-icon { width: 100%; height: 100%; filter: drop-shadow(0 4px 14px rgba(0,0,0,0.25)); }
     .login-avatar {
@@ -848,7 +858,16 @@
 
     @media (max-width: 700px) {
         .container { padding: 1rem 0.85rem 2.5rem; }
-        .header-content { justify-content: space-between; }
+        /* El botón de menú se caía a una fila aparte en móvil (flex-wrap
+           heredado del header general) — se fija en la misma fila,
+           siempre a la derecha, y se achica el bloque de marca para que
+           quepan los dos juntos sin apretarse. */
+        .header-content { justify-content: space-between; flex-wrap: nowrap; }
+        .brand-mark { flex-wrap: nowrap; min-width: 0; gap: 0.4rem; }
+        .brand-name { flex-shrink: 1; min-width: 0; }
+        .brand-name .wordmark-svg { height: 19px; }
+        .brand-subtitle { font-size: 0.66rem; line-height: 1.15; }
+        .header-menu-toggle { flex-shrink: 0; }
         .login-title { font-size: 1.6rem; }
         .login-title .wordmark-svg { height: 26px; }
         .header-menu-toggle { display: flex; }
@@ -2508,7 +2527,7 @@
             if (TESTING_MODE) document.getElementById('testingBadge').style.display = 'inline-block';
             // Mínimo de 1100ms visible, aunque la sesión resuelva antes —
             // así la animación del ícono se alcanza a ver, no es un flash.
-            const minSplashTime = new Promise(r => setTimeout(r, 1100));
+            const minSplashTime = new Promise(r => setTimeout(r, 1900));
             await Promise.all([initAuth(), minSplashTime]);
             document.getElementById('splashScreen').classList.add('hidden');
             document.getElementById('themeToggleBtn').addEventListener('click', toggleTheme);
