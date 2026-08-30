@@ -14,7 +14,7 @@
 <meta name="description" content="Instrumento de medición de marcas gráficas: 6 de los 14 indicadores de calidad de Chaves y Belluccia (2003), tipología marcaria y análisis cromático, calculados sobre la imagen real.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=MuseoModerno:wght@500;600;700;800&family=Montserrat:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=MuseoModerno:wght@500;600;700;800&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
@@ -45,7 +45,11 @@
         --cat3: var(--magenta);
         --cat4: var(--yellow);
         --font-display: 'MuseoModerno', sans-serif;
-        --font-mono: 'IBM Plex Mono', monospace;
+        /* Antes IBM Plex Mono — por regla del proyecto solo se usan
+           MuseoModerno y Montserrat, así que --font-mono ahora vale
+           Montserrat también. Se mantiene el nombre de la variable para
+           no tener que tocar los 36+ lugares que ya la usan. */
+        --font-mono: 'Montserrat', sans-serif;
         --font-body: 'Montserrat', sans-serif;
     }
 
@@ -264,8 +268,8 @@
     .btn:hover { background: var(--border); border-color: var(--text-muted); }
     .btn-primary { background: var(--surface-hover); border-color: var(--border); color: var(--cyan); font-weight: 700; }
     .btn-primary:hover { background: var(--border); border-color: var(--cyan); }
-    .btn-accent { background: var(--surface-hover); border-color: var(--border); color: var(--magenta); font-weight: 700; }
-    .btn-accent:hover { background: var(--border); border-color: var(--magenta); }
+    .btn-accent { background: var(--surface-hover); border-color: var(--border); color: var(--cyan); font-weight: 700; }
+    .btn-accent:hover { background: var(--border); border-color: var(--cyan); }
     .btn-success { background: var(--surface-hover); border-color: var(--border); color: var(--success); font-weight: 700; }
     .btn-success:hover { background: var(--border); border-color: var(--success); }
     .btn-danger { background: var(--surface-hover); border-color: var(--border); color: var(--danger); font-weight: 700; }
@@ -3550,7 +3554,7 @@
             for (let level = 1; level <= 5; level++) {
                 const r = radius*level/5, pct = level*20;
                 svg += '<circle class="radar-grid" cx="'+center+'" cy="'+center+'" r="'+r+'" fill="none" stroke="#38332A" stroke-width="0.75"/>';
-                svg += '<text class="radar-ring-label" x="'+(center+6)+'" y="'+(center-r+3)+'" fill="#726B5E" font-size="9" font-family="IBM Plex Mono, monospace">'+pct+'%</text>';
+                svg += '<text class="radar-ring-label" x="'+(center+6)+'" y="'+(center-r+3)+'" fill="#726B5E" font-size="9" font-family="Montserrat, sans-serif">'+pct+'%</text>';
             }
             for (let i = 0; i < count; i++) { const angle = (Math.PI*2*i)/count - Math.PI/2; const x = center+radius*Math.cos(angle), y = center+radius*Math.sin(angle); svg += '<line class="radar-grid" x1="'+center+'" y1="'+center+'" x2="'+x+'" y2="'+y+'" stroke="#38332A" stroke-width="0.75"/>'; }
             const pts = [];
@@ -3562,7 +3566,7 @@
                 const anchor = Math.abs(x-center)<24 ? 'middle' : x>center ? 'start' : 'end';
                 const catColor = categoryHex[cats[i]];
                 svg += '<text class="radar-axis-label" x="'+x+'" y="'+y+'" fill="#B8B0A2" font-size="11.5" font-family="Montserrat, sans-serif" text-anchor="'+anchor+'" dominant-baseline="middle">'+shortLabels[i]+'</text>';
-                svg += '<text class="radar-value" data-target="'+values[i]+'" x="'+x+'" y="'+(y+17)+'" fill="'+catColor+'" font-size="16" font-weight="700" font-family="IBM Plex Mono, monospace" text-anchor="'+anchor+'" dominant-baseline="middle">0%</text>';
+                svg += '<text class="radar-value" data-target="'+values[i]+'" x="'+x+'" y="'+(y+17)+'" fill="'+catColor+'" font-size="16" font-weight="700" font-family="Montserrat, sans-serif" text-anchor="'+anchor+'" dominant-baseline="middle">0%</text>';
             }
             svg += '</svg>';
             container.innerHTML = svg;
