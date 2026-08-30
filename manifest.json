@@ -1,0 +1,32 @@
+{
+  "name": "BRANDEX — Validación de Marcas Gráficas",
+  "short_name": "BRANDEX",
+  "description": "Instrumento de medición de marcas gráficas basado en los indicadores de calidad de Chaves y Belluccia.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#313130",
+  "theme_color": "#0086C1",
+  "lang": "es",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
