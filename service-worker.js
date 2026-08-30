@@ -5,7 +5,7 @@
 // sin que nadie se dé cuenta.
 
 const CACHE_NAME = 'brandex-v2';
-const APP_SHELL = ['/', '/manifest.json', '/icon-192.png', '/icon-512.png'];
+const APP_SHELL = ['/', '/manifest.json', '/icons/icon-192.png', '/icons/icon-512.png'];
 
 self.addEventListener('install', (event) => {
     event.waitUntil(

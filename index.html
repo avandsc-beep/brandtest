@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#0086C1">
-<link rel="icon" href="/icon-192.png">
-<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="icon" href="/icons/icon-192.png">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="BRANDEX">
@@ -183,6 +183,34 @@
     .footer-text { font-family: var(--font-body); font-size: 0.85rem; color: rgba(255,255,255,0.95); }
     .footer-divider { width: 2px; height: 20px; background: rgba(255,255,255,0.55); flex-shrink: 0; }
     .footer-avand-logo { height: 18px; width: auto; }
+
+    /* Aviso de instalación — flota arriba del pie fijo, solo en móvil.
+       En Android/Chrome dispara la instalación real; en iOS (que no
+       permite activarla por código) explica el paso manual. */
+    .install-banner {
+        position: fixed;
+        left: 12px; right: 12px;
+        bottom: 66px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 0.85rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.65rem;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+        z-index: 150;
+        animation: installBannerIn 0.4s ease;
+    }
+    .install-banner-row { display: flex; align-items: center; gap: 0.65rem; padding-right: 1.5rem; }
+    .install-banner-icon { width: 36px; height: 36px; flex-shrink: 0; border-radius: 10px; }
+    .install-banner-text { display: flex; flex-direction: column; min-width: 0; }
+    .install-banner-text strong { font-family: var(--font-display); font-size: 0.9rem; color: var(--text); }
+    .install-banner-text span { font-family: var(--font-body); font-size: 0.72rem; color: var(--text-muted); line-height: 1.3; }
+    .install-banner-close { position: absolute; top: 0.5rem; right: 0.6rem; background: none; border: none; color: var(--text-muted); font-size: 1.3rem; line-height: 1; cursor: pointer; padding: 0.2rem 0.35rem; }
+    #installBannerBtn { width: 100%; }
+    @keyframes installBannerIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+    @media (min-width: 700px) { .install-banner { display: none !important; } }
 
     .header-content {
         max-width: 1120px;
@@ -1603,6 +1631,35 @@
         // var(--text), que ya cambia con el tema); "EX" usa var(--cyan).
         const WORDMARK_SVG = '<svg class="wordmark-svg" viewBox="0 0 476.41 70.28" xmlns="http://www.w3.org/2000/svg" aria-label="BRANDEX"><path fill="currentColor" d="M125.56,69.99l-16.87-27.41-20.38-.4v27.81h-13.48V.89h40.82c10.91,0,19.78,8.88,19.78,19.79v1.72c0,7.66-4.53,14.74-11.55,18.05l-.84,.39,17.02,29.15h-14.5Zm-11.05-40.78h1.14c3.75,0,6.81-3.05,6.81-6.81v-1.72c0-3.82-2.99-6.81-6.81-6.81h-11.94l10.8,15.34Zm-26.2,0h13.27l-10.43-14.98-2-.36h-.84v15.34Z"/><path fill="currentColor" d="M143.28,69.99l29.5-57.38h-24.22V.89h31.2l37.41,69.1h-15.17l-8.7-16.13-.8,.82c-9.24,9.44-22,15.02-35.02,15.32h-14.21Zm22.75-14.38l1.87-.56c7.06-2.1,12.81-6.37,18.1-13.44l.33-.43-6.79-12.52-13.5,26.95Z"/><polygon fill="currentColor" points="221.31 69.99 221.31 .79 235.69 .79 263.12 58.63 265.51 58.63 265.51 .79 278.14 .79 278.14 69.89 255.39 69.99 235.67 27.5 234.06 27.86 234.06 69.99 221.31 69.99"/><path fill="currentColor" d="M292.53,69.89V.89h26.26c4.59,0,8.58,.85,12.91,2.76,4.25,1.73,7.96,4.21,11.06,7.4,3.16,3.15,5.65,6.85,7.42,10.98,1.76,4.22,2.66,8.73,2.66,13.42s-.9,9.2-2.66,13.43c-1.76,4.11-4.25,7.8-7.41,10.95-3.1,3.21-6.81,5.69-11.04,7.4-4.16,1.84-8.67,2.77-13.43,2.77h0l-25.76-.09Zm13.48-11.36h12.27c6.11,0,11.93-2.38,16.37-6.71,4.34-4.45,6.73-10.26,6.73-16.38s-2.38-11.93-6.71-16.37c-4.45-4.34-10.26-6.73-16.38-6.73h-12.27V58.53Z"/><path fill="var(--cyan)" d="M359.95,69.99V.89h50.36V6.62c0,28.76-8.08,37.07-36.04,37.07h-.84v14.84h36.68v11.45h-50.16Zm13.48-37.75h.84c17.99,0,24.38-2.88,24.38-19.05v-.84h-25.23v19.89Z"/><polygon fill="var(--cyan)" points="461.12 69.99 446.87 41.17 442.79 41.17 428.43 69.99 413.16 69.99 431.21 35.84 413.14 .89 428.43 .89 442.79 29.72 446.87 29.72 461.12 .89 476.39 .89 458.34 35.05 476.41 69.99 461.12 69.99"/><path fill="currentColor" d="M60.41,38.36l-5.65-5.07c4.2-3.54,6.61-8.72,6.61-14.2,0-4.96-1.94-9.63-5.45-13.14-3.51-3.51-8.18-5.45-13.13-5.45H1.4L.51,0,0,70.27H49.42c14.37,0,20.81-8.63,20.81-17.19,0-3.1-1.12-7.58-9.82-14.72ZM42.78,11.14c4.38,0,7.95,3.57,7.95,7.95,0,3.4-2.17,6.42-5.56,7.55l-1.28-.12L25.53,11.13h17.25Zm-31.66-.61L29.94,27.05h-1.34l-17.47-.51V10.51ZM49.42,59.65l-31.76-.45-6.53,10.35v-31.88l32.08,.12,10.28,8.33c.18,.14,4.36,3.38,4.36,7.28-.14,2.91-1.23,6.25-8.43,6.25Z"/></svg>';
 
+        // Aviso de instalación de la PWA — Android/Chrome dispara la
+        // instalación real vía el evento nativo; iOS no permite activarla
+        // por código, así que ahí solo se explica el paso manual.
+        let deferredInstallPrompt = null;
+
+        function isStandaloneApp() {
+            return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+        }
+        function isIOSDevice() {
+            return /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
+        }
+        function installDismissed() {
+            return localStorage.getItem('brandex_install_dismissed') === 'true';
+        }
+        function showInstallBanner(platform) {
+            if (isStandaloneApp() || installDismissed()) return;
+            const banner = document.getElementById('installBanner');
+            const subtext = document.getElementById('installBannerSubtext');
+            const btn = document.getElementById('installBannerBtn');
+            if (platform === 'ios') {
+                subtext.textContent = 'Toca compartir (⬆) y luego "Agregar a inicio"';
+                btn.style.display = 'none';
+            } else {
+                subtext.textContent = 'Accede más rápido, incluso sin conexión';
+                btn.style.display = 'inline-flex';
+            }
+            banner.style.display = 'flex';
+        }
+
         const TESTING_MODE = false;
 
         // ============ Conexión real a Supabase ============
@@ -2531,6 +2588,25 @@
             await Promise.all([initAuth(), minSplashTime]);
             document.getElementById('splashScreen').classList.add('hidden');
             document.getElementById('themeToggleBtn').addEventListener('click', toggleTheme);
+            document.getElementById('installBannerBtn').addEventListener('click', async () => {
+                if (!deferredInstallPrompt) return;
+                deferredInstallPrompt.prompt();
+                await deferredInstallPrompt.userChoice;
+                deferredInstallPrompt = null;
+                document.getElementById('installBanner').style.display = 'none';
+            });
+            document.getElementById('installBannerClose').addEventListener('click', () => {
+                document.getElementById('installBanner').style.display = 'none';
+                localStorage.setItem('brandex_install_dismissed', 'true');
+            });
+            if (isIOSDevice() && !isStandaloneApp() && !installDismissed()) {
+                setTimeout(() => showInstallBanner('ios'), 2600);
+            }
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                deferredInstallPrompt = e;
+                showInstallBanner('android');
+            });
             document.getElementById('howItWorksBtn').addEventListener('click', openHowItWorks);
             document.getElementById('closeHowItWorksBtn').addEventListener('click', closeHowItWorks);
             document.getElementById('profileBtn').addEventListener('click', openProfile);
@@ -3758,6 +3834,21 @@
             });
         }
     </script>
+
+    <div class="install-banner" id="installBanner" style="display:none;">
+        <button class="install-banner-close" id="installBannerClose" aria-label="Cerrar aviso de instalación">×</button>
+        <div class="install-banner-row">
+            <svg class="install-banner-icon" viewBox="0 0 124.12 124.12" aria-hidden="true">
+                <rect fill="#d9e021" x="0" width="124.12" height="124.12" rx="42.58" ry="42.58"/>
+                <path fill="#3c3c3b" d="M85.43,64.78l-4.77-4.28c3.55-2.99,5.58-7.37,5.58-11.99,0-4.19-1.63-8.13-4.6-11.1-2.97-2.97-6.91-4.6-11.09-4.6H35.59l-.76-.43-.43,59.35h41.74c12.14,0,17.57-7.29,17.57-14.52,0-2.62-.94-6.4-8.29-12.44Zm-14.89-22.99c3.7,0,6.72,3.01,6.72,6.72,0,2.87-1.83,5.42-4.7,6.38l-1.08-.1-15.5-13h14.57Zm-26.74-.52l15.89,13.97h-1.13l-14.76-.43v-13.54Zm32.34,41.5l-26.83-.38-5.52,8.74v-26.93l27.1,.1,8.68,7.03c.15,.11,3.68,2.85,3.68,6.15-.12,2.46-1.04,5.28-7.12,5.28Z"/>
+            </svg>
+            <div class="install-banner-text">
+                <strong>Instala BRANDEX</strong>
+                <span id="installBannerSubtext">Accede más rápido, incluso sin conexión</span>
+            </div>
+        </div>
+        <button class="btn btn-sm btn-primary" id="installBannerBtn">Instalar</button>
+    </div>
 
     <footer class="app-footer">
         <span class="footer-text">Desarrollado por:</span>
