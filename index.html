@@ -788,6 +788,8 @@
     .score-bar { height: 5px; background: var(--border); border-radius: 3px; overflow: hidden; margin: 0.4rem 0; }
     .score-fill { height: 100%; transition: width 0.8s; }
     .indicator-justification { font-size: 0.76rem; color: var(--text-muted); margin-top: 0.25rem; line-height: 1.55; max-width: 65ch; }
+    .indicator-confidence { font-family: var(--font-body); font-size: 0.7rem; color: var(--text-muted); margin-top: 0.35rem; opacity: 0.85; }
+    .indicator-review-flag { color: var(--magenta); opacity: 1; }
     .indicator-detail { font-size: 0.7rem; color: var(--text-muted); margin-top: 0.3rem; padding-left: 0.6rem; border-left: 2px solid var(--border); }
 
     .diagnostic-text h3 { font-family: var(--font-display); font-size: 0.92rem; color: var(--cyan); margin: 0.9rem 0 0.4rem; }
@@ -3243,6 +3245,23 @@
                     : "La cantidad de piezas independientes juega en contra de la memorabilidad: cuantas más partes sueltas tiene un signo, más difícil resulta evocarlo o dibujarlo de memoria.") };
 
             Object.keys(scores).forEach(k => { scores[k].score = Math.round(scores[k].score); });
+
+            // Confianza por indicador — no es una medida de qué tan "bien"
+            // se ejecutó el cálculo (la fórmula siempre es la misma), sino
+            // de qué tan cerca está el puntaje de un corte de veredicto
+            // (35 / 50 / 70, los mismos que separan Rediseño / Revisar /
+            // Ajuste leve / Aprobado). Cerca de un corte, un margen de
+            // error razonable en la medición sí podría cambiar la
+            // decisión final — lejos de todos los cortes, no. Se marca
+            // "revisión manual sugerida" por debajo de 65%.
+            const VERDICT_THRESHOLDS = [35, 50, 70];
+            Object.keys(scores).forEach(k => {
+                const score = scores[k].score;
+                const distance = Math.min(...VERDICT_THRESHOLDS.map(t => Math.abs(score - t)));
+                scores[k].confidence = Math.round(clamp(60 + distance * 2.3, 60, 96));
+                scores[k].needsReview = scores[k].confidence < 65;
+            });
+
             return scores;
         }
 
@@ -3395,7 +3414,7 @@
             } else {
                 html += '<h3 class="print-detail-only">Resultados por Indicador</h3>';
                 html += '<div class="print-detail-only">';
-                Object.keys(scores).forEach(k => { html += '<p><strong>' + evaluableIndicators[k].name + ': ' + scores[k].score + '%</strong><br>' + scores[k].justification + '</p>'; });
+                Object.keys(scores).forEach(k => { html += '<p><strong>' + evaluableIndicators[k].name + ': ' + scores[k].score + '%</strong> <span style="font-weight:400; opacity:0.75;">(confianza: ' + scores[k].confidence + '%' + (scores[k].needsReview ? ', revisión manual sugerida' : '') + ')</span><br>' + scores[k].justification + '</p>'; });
                 html += '</div>';
                 html += '<h3 class="print-detail-only">Criterios de Evaluación de Referencia</h3>';
                 html += '<div class="print-detail-only criteria-groups">';
@@ -3633,7 +3652,8 @@
                         const item = document.createElement('div');
                         item.className = 'indicator-item';
                         const color = res.score >= 80 ? '#7ED957' : res.score >= 60 ? '#D9E021' : '#E8604A';
-                        item.innerHTML = '<div class="indicator-header"><div><div class="indicator-name">' + ind.name + '</div><div class="indicator-definition">' + ind.definition + '</div></div><div class="indicator-score" style="color:' + color + ';">' + res.score + '%</div></div><div class="score-bar"><div class="score-fill" style="width:' + res.score + '%; background:' + categoryHex[catKey] + ';"></div></div><div class="indicator-justification">' + res.justification + '</div>' + (results.plan !== 'libre' ? '<div class="indicator-detail print-detail-only">' + ind.criteria.map(c=>'• '+c).join('<br>') + '</div>' : '');
+                        const confidenceHtml = '<div class="indicator-confidence">Confianza: ' + res.confidence + '%' + (res.needsReview ? ' <span class="indicator-review-flag">— cerca del límite entre veredictos, conviene revisión manual</span>' : '') + '</div>';
+                        item.innerHTML = '<div class="indicator-header"><div><div class="indicator-name">' + ind.name + '</div><div class="indicator-definition">' + ind.definition + '</div></div><div class="indicator-score" style="color:' + color + ';">' + res.score + '%</div></div><div class="score-bar"><div class="score-fill" style="width:' + res.score + '%; background:' + categoryHex[catKey] + ';"></div></div>' + confidenceHtml + '<div class="indicator-justification">' + res.justification + '</div>' + (results.plan !== 'libre' ? '<div class="indicator-detail print-detail-only">' + ind.criteria.map(c=>'• '+c).join('<br>') + '</div>' : '');
                         body.appendChild(item);
                     }
                 });

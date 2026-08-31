@@ -1,18 +1,14 @@
 // test_engine.js — Pruebas de regresión del motor de BrandTest.
-// Se extraen las funciones puras directamente del cuerpo de initLegacyApp()
-// en src/legacy/legacyApp.js (no una copia pegada aparte), así que nunca
-// se desalinean con lo publicado.
-// Uso: node test_engine.js  (desde la raíz del proyecto)
+// Se extraen las funciones puras directamente del <script> de index.html
+// (no una copia pegada aparte), así que nunca se desalinean con lo publicado.
+// Uso: node test_engine.js  (desde la misma carpeta que index.html)
 
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
+const fs = require('fs');
+const path = require('path');
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-
-const engineSource = fs.readFileSync(path.join(__dirname, 'src/legacy/legacyApp.js'), 'utf8');
-const match = engineSource.match(/export function initLegacyApp\(\)\s*\{([\s\S]*)\}\s*$/);
-if (!match) throw new Error('No se encontró el cuerpo de initLegacyApp() en src/legacy/legacyApp.js');
+const html = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
+const match = html.match(/<script>([\s\S]*)<\/script>/);
+if (!match) throw new Error('No se encontró el bloque <script> en index.html');
 const scriptBody = match[1];
 
 // Stub mínimo de `document`: el script registra un listener de
@@ -76,19 +72,12 @@ function fakeD(overrides) {
             { minX: 25, maxX: 35, minY: 40, maxY: 60, area: 78, w: 10, h: 20, cx: 30, cy: 50 },
         ],
         componentCount: 2,
+        effectiveComponentCount: 2,
         textGroup: [], extras: [], avgLetterArea: 80,
         hasFondo: false, largestAreaRatio: 0.51, inkRatio: 0.06,
         colorCount: 2,
     };
-    const merged = Object.assign(base, overrides);
-    // Espeja el cálculo real (sección "Inteligibilidad y Pregnancia" de la
-    // memoria técnica): el bloque de texto cuenta como una sola unidad
-    // conceptual, sin importar su largo — evaluateIndicatorsReal() asume
-    // que este campo ya viene calculado, igual que en analyzeImage().
-    if (merged.effectiveComponentCount === undefined) {
-        merged.effectiveComponentCount = (merged.textGroup.length > 0 ? 1 : 0) + merged.extras.length;
-    }
-    return merged;
+    return Object.assign(base, overrides);
 }
 
 // ============================================================
@@ -275,11 +264,70 @@ assert(M.getInitials('') === '?', 'nombre vacío debe devolver "?"');
 }
 
 // ============================================================
+// 12. Conteo efectivo de unidades gráficas — un logotipo con nombre
+// largo (con puntos de "i" sueltos) no debe penalizarse letra por
+// letra en Inteligibilidad ni Pregnancia.
+// ============================================================
+{
+    // 10 "letras" + 2 puntos de "i" sueltos = 12 componentes brutos,
+    // pero es UN SOLO bloque de texto — sin símbolo adicional.
+    const wordmarkLargo = fakeD({
+        componentCount: 12,
+        effectiveComponentCount: 1, // 1 bloque de texto, 0 extras
+        textGroup: new Array(10).fill({}), extras: [],
+        symmetryScore: 70, edgeComplexity: 25
+    });
+    const scoresLargo = M.evaluateIndicatorsReal(wordmarkLargo);
+    assert(scoresLargo.inteligibilidad.score >= 85, 'un nombre largo (12 componentes brutos, 1 unidad efectiva) no debe penalizar Inteligibilidad, dio ' + scoresLargo.inteligibilidad.score);
+    assert(scoresLargo.pregnancia.score >= 70, 'un nombre largo (12 componentes brutos, 1 unidad efectiva) no debe penalizar Pregnancia por fragmentación, dio ' + scoresLargo.pregnancia.score);
+
+    // Mismo caso pero además con un símbolo separado — ahora sí son
+    // 2 unidades efectivas (texto + símbolo), no 13.
+    const wordmarkConSimbolo = fakeD({
+        componentCount: 13,
+        effectiveComponentCount: 2,
+        textGroup: new Array(10).fill({}), extras: [{}],
+        symmetryScore: 70, edgeComplexity: 25
+    });
+    const scoresConSimbolo = M.evaluateIndicatorsReal(wordmarkConSimbolo);
+    assert(scoresConSimbolo.inteligibilidad.score >= 85, 'texto + 1 símbolo (2 unidades efectivas) no debe penalizarse como si fueran 13, dio ' + scoresConSimbolo.inteligibilidad.score);
+}
+
+// ============================================================
+// 13. Confianza por indicador — no mide qué tan bien se ejecutó el
+// cálculo (la fórmula es siempre la misma), sino qué tan cerca está
+// el puntaje de un corte de veredicto (35/50/70). Cerca de un corte,
+// un margen de error en la medición sí podría cambiar la decisión
+// final; lejos de todos los cortes, no.
+// ============================================================
+{
+    const wordmarkLargo = fakeD({
+        componentCount: 12,
+        effectiveComponentCount: 1,
+        textGroup: new Array(10).fill({}), extras: [],
+        symmetryScore: 70, edgeComplexity: 25
+    });
+    const scoresLargo = M.evaluateIndicatorsReal(wordmarkLargo);
+
+    Object.keys(scoresLargo).forEach(k => {
+        const s = scoresLargo[k];
+        assert(s.confidence >= 60 && s.confidence <= 96, k + ': la confianza debe quedar entre 60 y 96, dio ' + s.confidence);
+        assert(s.needsReview === (s.confidence < 65), k + ': needsReview debe coincidir exactamente con confianza < 65 (confianza=' + s.confidence + ', needsReview=' + s.needsReview + ')');
+    });
+
+    // Un puntaje pegado a un corte de veredicto (aquí, 70 exacto —
+    // "Ajuste leve" vs. "No necesita ajustes") debe tener MENOS
+    // confianza que uno lejos de cualquier corte (aquí, cerca del
+    // máximo de su rango).
+    const distancia0 = Math.min(...[35,50,70].map(t => Math.abs(70 - t)));
+    const confianzaEnCorte = Math.round(Math.max(60, Math.min(96, 60 + distancia0 * 2.3)));
+    const distancia1 = Math.min(...[35,50,70].map(t => Math.abs(96 - t)));
+    const confianzaLejosDelCorte = Math.round(Math.max(60, Math.min(96, 60 + distancia1 * 2.3)));
+    assert(confianzaEnCorte === 60, 'un puntaje exactamente en un corte de veredicto debe dar la confianza mínima (60), dio ' + confianzaEnCorte);
+    assert(confianzaLejosDelCorte > confianzaEnCorte, 'un puntaje lejos de todo corte debe tener más confianza que uno pegado a un corte');
+    assert(confianzaLejosDelCorte === 96, 'un puntaje de 96 (lejos de 35/50/70) debe topar en el máximo de confianza (96), dio ' + confianzaLejosDelCorte);
+}
+
+// ============================================================
 console.log(`\n${pass} pruebas OK, ${fail} fallaron.`);
-// Salida inmediata y síncrona: initLegacyApp() también dispara el arranque
-// completo de la app (startLegacyApp(), sin esperar) al evaluar su cuerpo,
-// y los stubs de este harness son deliberadamente mínimos (solo cubren las
-// funciones puras que se prueban arriba) — sin esto, ese arranque de fondo
-// termina lanzando un rechazo de promesa no manejado sobre un DOM que no
-// existe, después de que el resultado real ya se imprimió.
-process.exit(fail > 0 ? 1 : 0);
+if (fail > 0) process.exit(1);
