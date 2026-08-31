@@ -805,6 +805,8 @@
     .profile-only-experto { display: none; }
     .results-section.profile-experto .profile-only-experto { display: block; }
     .results-section.profile-general #resultsGrid { display: none; }
+    .calib-verified-badge { font-family: var(--font-mono); font-size: 0.68rem; color: var(--success); }
+    .calib-pending-badge { font-family: var(--font-mono); font-size: 0.68rem; color: var(--yellow); }
     .indicator-detail { font-size: 0.7rem; color: var(--text-muted); margin-top: 0.3rem; padding-left: 0.6rem; border-left: 2px solid var(--border); }
 
     .diagnostic-text h3 { font-family: var(--font-display); font-size: 0.92rem; color: var(--cyan); margin: 0.9rem 0 0.4rem; }
@@ -1080,6 +1082,7 @@
                 <div class="header-menu-actions">
                     <button class="btn btn-sm" id="profileBtn">Mi cuenta</button>
                     <button class="btn btn-sm" id="logoutBtn">Salir</button>
+                    <button class="btn btn-sm" id="contributeBtn" style="display:none;">Contribuir al banco</button>
                     <button class="btn btn-sm btn-accent" id="adminBtn" style="display:none;">Admin</button>
                 </div>
             </div>
@@ -1715,12 +1718,14 @@
         // cuentas registradas, en localStorage para invitados.
         let currentProfile = 'general';
 
-        function applyProfile(profile) {
+        function applyProfile(profile, opts) {
+            const skipPersist = opts && opts.skipPersist;
             currentProfile = profile;
             const section = document.getElementById('resultsSection');
             section.classList.remove('profile-general', 'profile-disenador', 'profile-experto');
             section.classList.add('profile-' + profile);
             document.querySelectorAll('.profile-btn').forEach(b => b.classList.toggle('active', b.dataset.profile === profile));
+            if (skipPersist) return;
             if (currentUser && !isGuest) {
                 supabaseClient.from('users').update({ profile }).eq('id', currentUser.id).then(() => {});
             } else {
@@ -2081,8 +2086,9 @@
             const initialProfile = isGuest
                 ? (localStorage.getItem('brandex_profile') || 'general')
                 : (currentUser.profile || 'general');
-            applyProfile(initialProfile);
+            applyProfile(initialProfile, { skipPersist: true });
             document.getElementById('adminBtn').style.display = currentUser.is_admin ? 'inline-block' : 'none';
+            document.getElementById('contributeBtn').style.display = (!currentUser.is_admin && currentProfile === 'experto' && !isGuest) ? 'inline-block' : 'none';
             document.getElementById('profileBtn').style.display = isGuest ? 'none' : 'inline-block';
             document.getElementById('planEstandarOption').disabled = isGuest;
             document.getElementById('planProOption').disabled = isGuest;
@@ -2180,6 +2186,23 @@
         function closeAdmin() {
             document.getElementById('adminPanel').classList.remove('active');
             document.getElementById('mainApp').style.display = 'block';
+            document.querySelector('.admin-tabs').style.display = 'flex';
+        }
+
+        // Un usuario con perfil Experto (no necesariamente admin) puede
+        // contribuir al banco de calibración — pero solo a esa pestaña,
+        // nunca a Créditos ni Métricas, que siguen siendo exclusivas del
+        // admin real. La protección de fondo está en Supabase (RLS +
+        // trigger que marca verified=false para estas contribuciones),
+        // esto es solo la puerta de entrada en la interfaz.
+        function openExpertContribute() {
+            document.getElementById('adminPanel').classList.add('active');
+            document.getElementById('mainApp').style.display = 'none';
+            document.querySelector('.admin-tabs').style.display = 'none';
+            document.querySelectorAll('.admin-tab-panel').forEach(p => p.classList.remove('active'));
+            document.getElementById('adminTabValoracion').classList.add('active');
+            renderCalibTypologyGrid();
+            renderCalibrationSamples();
         }
 
         /* ---- Test de reconocimiento (cualquier usuario, +1 crédito) ---- */
@@ -2440,6 +2463,13 @@
             renderCalibrationSamples();
         }
 
+        async function verifyCalibrationSample(id) {
+            const { error } = await supabaseClient.from('calibration_samples').update({ verified: true }).eq('id', id);
+            if (error) { notify('No se pudo verificar: ' + error.message); return; }
+            notify('Muestra marcada como verificada');
+            renderCalibrationSamples();
+        }
+
         async function renderCalibrationSamples() {
             const container = document.getElementById('calibList');
             const { data, error } = await supabaseClient.from('calibration_samples').select('*').order('created_at', { ascending: false }).limit(50);
@@ -2465,6 +2495,8 @@
                     }
                     return '<div class="history-item">'
                         + '<strong>' + (s.brand_name || 'Sin nombre') + '</strong> — ' + (typologies[s.typology] ? typologies[s.typology].name : s.typology) + ' — ' + new Date(s.created_at).toLocaleDateString('es-BO')
+                        + ' — <span class="' + (s.verified ? 'calib-verified-badge' : 'calib-pending-badge') + '">' + (s.verified ? 'Verificado' : 'Pendiente de verificación') + '</span>'
+                        + (currentUser.is_admin && !s.verified ? ' <button class="btn btn-sm" onclick="verifyCalibrationSample(\'' + s.id + '\')">Verificar</button>' : '')
                         + '<div style="margin-top:0.4rem;">' + diffHtml + '</div>'
                         + (s.expert_justification ? '<div style="margin-top:0.35rem; font-size:0.75rem; color:var(--text-muted); font-style:italic;">"' + s.expert_justification + '"</div>' : '')
                         + '</div>';
@@ -2755,6 +2787,7 @@
             document.getElementById('exportSummaryBtn').addEventListener('click', () => exportReport('summary'));
             document.getElementById('logoutBtn').addEventListener('click', logout);
             document.getElementById('adminBtn').addEventListener('click', openAdmin);
+            document.getElementById('contributeBtn').addEventListener('click', openExpertContribute);
             document.getElementById('cropBtn').addEventListener('click', openCropModal);
             document.getElementById('cropCancelBtn').addEventListener('click', closeCropModal);
             document.getElementById('cropConfirmBtn').addEventListener('click', confirmCrop);
