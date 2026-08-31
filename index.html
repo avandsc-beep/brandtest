@@ -807,6 +807,13 @@
     .results-section.profile-general #resultsGrid { display: none; }
     .calib-verified-badge { font-family: var(--font-mono); font-size: 0.68rem; color: var(--success); }
     .calib-pending-badge { font-family: var(--font-mono); font-size: 0.68rem; color: var(--yellow); }
+    .compare-header-row { display: flex; justify-content: space-between; padding-bottom: 0.6rem; margin-bottom: 0.6rem; border-bottom: 1px solid var(--border); font-family: var(--font-body); font-size: 0.85rem; }
+    .compare-row { display: grid; grid-template-columns: 1fr 1.4fr 1fr; align-items: center; text-align: center; gap: 0.4rem; padding: 0.4rem 0; font-family: var(--font-mono); font-size: 0.78rem; border-bottom: 1px solid var(--border-soft); }
+    .compare-row span:nth-child(2) { font-family: var(--font-body); color: var(--text-muted); font-size: 0.72rem; }
+    .compare-row-overall { font-weight: 700; font-size: 0.92rem; }
+    .compare-delta { font-size: 0.68rem; }
+    .compare-up { color: var(--success); }
+    .compare-down { color: var(--danger); }
     .indicator-detail { font-size: 0.7rem; color: var(--text-muted); margin-top: 0.3rem; padding-left: 0.6rem; border-left: 2px solid var(--border); }
 
     .diagnostic-text h3 { font-family: var(--font-display); font-size: 0.92rem; color: var(--cyan); margin: 0.9rem 0 0.4rem; }
@@ -1219,8 +1226,18 @@
                 </div>
                 <div class="form-group">
                     <h3 style="font-family:var(--font-mono); font-size:1.6rem; margin-bottom:0.4rem; text-transform:uppercase; letter-spacing:0.04em; color:var(--text-muted);">Mi historial</h3>
+                    <p style="font-size:0.72rem; color:var(--text-muted); text-transform:none; margin-bottom:0.5rem;">Toca un análisis para volver a verlo. Marca dos con la casilla para compararlos.</p>
                     <div id="diagnosisHistoryList" style="font-size:0.78rem; color:var(--text-muted); text-transform:none;">Cargando…</div>
+                    <button class="btn btn-sm btn-primary" id="compareSelectedBtn" style="margin-top:0.6rem; display:none;" disabled>Comparar seleccionados (0/2)</button>
                 </div>
+            </div>
+        </div>
+
+        <!-- COMPARACIÓN de dos análisis del historial -->
+        <div id="compareModal" class="modal">
+            <div class="card" style="max-width:600px; width:92%; max-height:88vh; max-height:88dvh; overflow-y:auto;">
+                <h2 class="card-title">Comparar Análisis <button class="btn btn-sm" id="closeCompareBtn" style="margin-left:auto;">Cerrar</button></h2>
+                <div id="compareContent"></div>
             </div>
         </div>
 
@@ -1760,9 +1777,12 @@
         }
         function openProfile() { document.getElementById('profileModal').classList.add('active'); renderDiagnosisHistory(); }
 
+        let selectedForCompare = new Set();
+
         async function renderDiagnosisHistory() {
             const container = document.getElementById('diagnosisHistoryList');
             container.textContent = 'Cargando…';
+            selectedForCompare = new Set();
             const { data, error } = await supabaseClient
                 .from('diagnosis_history')
                 .select('*')
@@ -1770,17 +1790,63 @@
                 .order('created_at', { ascending: false })
                 .limit(20);
             if (error) { container.textContent = 'No se pudo cargar el historial.'; return; }
-            if (!data || !data.length) { container.textContent = 'Todavía no guardaste ningún diagnóstico.'; return; }
+            if (!data || !data.length) { container.textContent = 'Todavía no guardaste ningún diagnóstico.'; document.getElementById('compareSelectedBtn').style.display = 'none'; return; }
             container.innerHTML = data.map(h =>
-                '<div class="history-item history-item-clickable" data-id="' + h.id + '">' + (h.brand_name || 'Marca sin nombre') + ' — '
+                '<div class="history-item" style="display:flex; align-items:center; gap:0.5rem;">'
+                + '<input type="checkbox" class="compare-check" data-id="' + h.id + '">'
+                + '<span class="history-item-clickable" data-id="' + h.id + '" style="flex:1; cursor:pointer;">' + (h.brand_name || 'Marca sin nombre') + ' — '
                 + (typologies[h.typology] ? typologies[h.typology].name : h.typology) + ' — '
                 + h.overall_score + '% — ' + new Date(h.created_at).toLocaleDateString('es-BO')
-                + '</div>'
+                + '</span></div>'
             ).join('');
             container.querySelectorAll('.history-item-clickable').forEach(el => {
                 el.addEventListener('click', () => viewHistoryEntry(el.dataset.id));
             });
+            const compareBtn = document.getElementById('compareSelectedBtn');
+            compareBtn.style.display = 'inline-block';
+            container.querySelectorAll('.compare-check').forEach(cb => {
+                cb.addEventListener('change', () => {
+                    if (cb.checked) {
+                        if (selectedForCompare.size >= 2) { cb.checked = false; notify('Solo se pueden comparar 2 análisis a la vez'); return; }
+                        selectedForCompare.add(cb.dataset.id);
+                    } else {
+                        selectedForCompare.delete(cb.dataset.id);
+                    }
+                    compareBtn.textContent = 'Comparar seleccionados (' + selectedForCompare.size + '/2)';
+                    compareBtn.disabled = selectedForCompare.size !== 2;
+                });
+            });
         }
+
+        async function compareSelectedEntries() {
+            const ids = Array.from(selectedForCompare);
+            if (ids.length !== 2) return;
+            const [a, b] = await Promise.all(ids.map(id => supabaseClient.from('diagnosis_history').select('*').eq('id', id).single()));
+            if (a.error || b.error || !a.data || !b.data) { notify('No se pudieron cargar los dos análisis'); return; }
+            renderCompareView(a.data, b.data);
+            document.getElementById('compareModal').classList.add('active');
+        }
+
+        function renderCompareView(entryA, entryB) {
+            const rA = entryA.results_json, rB = entryB.results_json;
+            const dateA = new Date(entryA.created_at).toLocaleDateString('es-BO');
+            const dateB = new Date(entryB.created_at).toLocaleDateString('es-BO');
+            let html = '<div class="compare-header-row"><div><strong>' + (entryA.brand_name || 'Sin nombre') + '</strong><br><span style="font-size:0.7rem; color:var(--text-muted);">' + dateA + '</span></div>'
+                + '<div style="text-align:right;"><strong>' + (entryB.brand_name || 'Sin nombre') + '</strong><br><span style="font-size:0.7rem; color:var(--text-muted);">' + dateB + '</span></div></div>';
+            const scoreDelta = entryB.overall_score - entryA.overall_score;
+            html += '<div class="compare-row compare-row-overall"><span>' + entryA.overall_score + '%</span><span>Puntuación General</span><span>' + entryB.overall_score + '% <span class="compare-delta ' + (scoreDelta > 0 ? 'compare-up' : scoreDelta < 0 ? 'compare-down' : '') + '">(' + (scoreDelta > 0 ? '+' : '') + scoreDelta + ')</span></span></div>';
+            Object.keys(evaluableIndicators).forEach(k => {
+                const sa = rA.indicators && rA.indicators[k] ? rA.indicators[k].score : null;
+                const sb = rB.indicators && rB.indicators[k] ? rB.indicators[k].score : null;
+                if (sa === null || sb === null) return;
+                const delta = sb - sa;
+                html += '<div class="compare-row"><span>' + sa + '%</span><span>' + evaluableIndicators[k].name + '</span><span>' + sb + '% <span class="compare-delta ' + (delta > 0 ? 'compare-up' : delta < 0 ? 'compare-down' : '') + '">(' + (delta > 0 ? '+' : '') + delta + ')</span></span></div>';
+            });
+            document.getElementById('compareContent').innerHTML = html;
+        }
+
+        function closeCompareModal() { document.getElementById('compareModal').classList.remove('active'); }
+
 
         // Vuelve a mostrar un diagnóstico guardado — antes el historial solo
         // era una lista de texto sin forma de volver a revisar el análisis
@@ -2759,6 +2825,8 @@
             document.getElementById('closeHowItWorksBtn').addEventListener('click', closeHowItWorks);
             document.getElementById('profileBtn').addEventListener('click', openProfile);
             document.getElementById('closeProfileBtn').addEventListener('click', closeProfile);
+            document.getElementById('closeCompareBtn').addEventListener('click', closeCompareModal);
+            document.getElementById('compareSelectedBtn').addEventListener('click', compareSelectedEntries);
             document.getElementById('switchAccountLink').addEventListener('click', switchAccount);
             document.getElementById('guestLink').addEventListener('click', useAsGuest);
             document.getElementById('headerMenuToggle').addEventListener('click', toggleHeaderMenu);
