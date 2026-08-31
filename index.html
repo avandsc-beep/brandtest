@@ -795,6 +795,16 @@
     .calib-diff-row { display: flex; justify-content: space-between; gap: 0.5rem; font-size: 0.75rem; padding: 0.15rem 0; }
     .calib-diff-value { font-family: var(--font-mono); font-weight: 600; }
     .calib-diff-high { color: var(--magenta); }
+
+    /* Perfil de lectura — General/Diseñador/Experto ven el mismo cálculo,
+       solo cambia cuánta profundidad se muestra. Nunca toca el motor. */
+    .profile-selector { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.1rem; }
+    .profile-selector-label { font-family: var(--font-body); font-size: 0.75rem; color: var(--text-muted); }
+    .profile-btn { background: var(--surface-hover); border: 1px solid var(--border); border-radius: 20px; padding: 0.35rem 0.85rem; font-family: var(--font-body); font-size: 0.75rem; color: var(--text-muted); cursor: pointer; }
+    .profile-btn.active { background: var(--cyan); color: #1a1a1a; border-color: var(--cyan); font-weight: 600; }
+    .profile-only-experto { display: none; }
+    .results-section.profile-experto .profile-only-experto { display: block; }
+    .results-section.profile-general #resultsGrid { display: none; }
     .indicator-detail { font-size: 0.7rem; color: var(--text-muted); margin-top: 0.3rem; padding-left: 0.6rem; border-left: 2px solid var(--border); }
 
     .diagnostic-text h3 { font-family: var(--font-display); font-size: 0.92rem; color: var(--cyan); margin: 0.9rem 0 0.4rem; }
@@ -1494,6 +1504,12 @@
             </div>
 
             <div class="results-section" id="resultsSection">
+                <div class="profile-selector" id="profileSelector">
+                    <span class="profile-selector-label">Ver como:</span>
+                    <button class="profile-btn" data-profile="general">General</button>
+                    <button class="profile-btn" data-profile="disenador">Diseñador / Estudiante</button>
+                    <button class="profile-btn" data-profile="experto">Experto</button>
+                </div>
                 <div class="analyzed-image-strip">
                     <img id="analyzedImage" alt="Marca gráfica analizada">
                     <div class="analyzed-image-meta">
@@ -1547,6 +1563,13 @@
                 </div>
 
                 <div id="resultsGrid"></div>
+
+                <div class="card profile-only-experto" id="expertTechnicalCard">
+                    <h2 class="card-title">Variables Crudas <span class="eyebrow">Solo perfil Experto</span></h2>
+                    <p style="font-size:0.76rem; color:var(--text-muted); margin-bottom:0.6rem; text-transform:none;">Las lecturas directas sobre la imagen, antes de convertirse en puntaje de indicador — para auditar el cálculo, no una interpretación.</p>
+                    <div id="expertTechnicalData" style="font-family:var(--font-mono); font-size:0.78rem; color:var(--text); line-height:1.9;"></div>
+                    <p style="font-size:0.72rem; color:var(--text-muted); margin-top:0.6rem; text-transform:none;">¿Este resultado te parece incorrecto? Podés registrar tu propio juicio y una justificación en el banco de calibración (panel admin) para ayudar a validar el motor.</p>
+                </div>
 
                 <div class="card">
                     <h2 class="card-title">Diagnóstico General <span class="eyebrow">Basado en la imagen cargada</span></h2>
@@ -1686,6 +1709,24 @@
         let db = { introSeen: false, lastUser: null, typologyFeedback: [], diagnosticFeedback: [] };
         // currentUser: la fila de public.users del usuario autenticado (créditos, plan, whatsapp...).
         let currentUser = null;
+        // Perfil de lectura del resultado — general / disenador / experto.
+        // Nunca toca el motor de cálculo, solo cuánta profundidad de la
+        // MISMA evaluación se muestra. Persiste en users.profile para
+        // cuentas registradas, en localStorage para invitados.
+        let currentProfile = 'general';
+
+        function applyProfile(profile) {
+            currentProfile = profile;
+            const section = document.getElementById('resultsSection');
+            section.classList.remove('profile-general', 'profile-disenador', 'profile-experto');
+            section.classList.add('profile-' + profile);
+            document.querySelectorAll('.profile-btn').forEach(b => b.classList.toggle('active', b.dataset.profile === profile));
+            if (currentUser && !isGuest) {
+                supabaseClient.from('users').update({ profile }).eq('id', currentUser.id).then(() => {});
+            } else {
+                localStorage.setItem('brandex_profile', profile);
+            }
+        }
         // true cuando se usa la app sin cuenta (invitado) — currentUser es un objeto
         // local temporal, nada se guarda en Supabase.
         let isGuest = false;
@@ -2037,6 +2078,10 @@
             document.getElementById('mainApp').style.display = 'block';
             document.getElementById('userSection').style.display = 'flex';
             updateUserUI();
+            const initialProfile = isGuest
+                ? (localStorage.getItem('brandex_profile') || 'general')
+                : (currentUser.profile || 'general');
+            applyProfile(initialProfile);
             document.getElementById('adminBtn').style.display = currentUser.is_admin ? 'inline-block' : 'none';
             document.getElementById('profileBtn').style.display = isGuest ? 'none' : 'inline-block';
             document.getElementById('planEstandarOption').disabled = isGuest;
@@ -2656,6 +2701,9 @@
             await Promise.all([initAuth(), minSplashTime]);
             document.getElementById('splashScreen').classList.add('hidden');
             document.getElementById('themeToggleBtn').addEventListener('click', toggleTheme);
+            document.querySelectorAll('.profile-btn').forEach(btn => {
+                btn.addEventListener('click', () => applyProfile(btn.dataset.profile));
+            });
             document.getElementById('installBannerBtn').addEventListener('click', async () => {
                 if (!deferredInstallPrompt) return;
                 deferredInstallPrompt.prompt();
@@ -3674,6 +3722,16 @@
             stamp.style.display = 'flex';
             renderRadarChart(results);
             renderCategoryBars(results);
+            const rd = results.rawData || {};
+            document.getElementById('expertTechnicalData').innerHTML = [
+                ['Contraste tinta/fondo (WCAG)', rd.contrast !== undefined ? rd.contrast.toFixed(2) + ':1' : '—'],
+                ['Colores en paleta (post-fusión perceptual)', rd.colorCount],
+                ['Simetría respecto al eje vertical', rd.symmetryScore + '%'],
+                ['Complejidad de bordes', rd.edgeComplexity + '/100'],
+                ['Componentes detectados (bruto)', rd.componentCount],
+                ['Unidades gráficas efectivas', rd.effectiveComponentCount],
+                ['Origen de imagen (afecta umbral de fusión de color)', rd.imageSource || imageSource || '—']
+            ].map(([label, val]) => '<div>' + label + ': <strong>' + val + '</strong></div>').join('');
             document.getElementById('typologyName').textContent = results.typology.name || typologies[results.typology.type].name;
             document.getElementById('typologyJustification').textContent = results.typology.justification;
             document.getElementById('typologyConfidence').textContent = results.typology.confidence + '%';
