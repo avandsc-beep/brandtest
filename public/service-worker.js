@@ -4,7 +4,7 @@
 // real (créditos, sesión, análisis), o podríamos servir datos viejos
 // sin que nadie se dé cuenta.
 
-const CACHE_NAME = 'brandex-v2';
+const CACHE_NAME = 'brandex-v3';
 const APP_SHELL = ['/', '/manifest.json', '/icons/icon-192.png', '/icons/icon-512.png'];
 
 self.addEventListener('install', (event) => {
@@ -26,7 +26,12 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
     const req = event.request;
     if (req.method !== 'GET') return;
-    if (req.url.includes('/api/') || req.url.includes('supabase.co')) return;
+    if (req.url.includes('/api/')) return;
+    // Solo interceptar requests del PROPIO dominio. Las cross-origin
+    // (avatar de Google, fuentes, Paddle) deben pasar de largo: dentro
+    // del worker quedan bajo el connect-src del CSP (que no las permite)
+    // y morían acá — en el navegador rigen img-src/font-src y cargan bien.
+    if (new URL(req.url).origin !== self.location.origin) return;
 
     event.respondWith(
         fetch(req)
