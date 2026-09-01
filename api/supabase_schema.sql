@@ -303,3 +303,255 @@ create policy "admins ven el uso de creditos"
 create policy "admins ven todas las respuestas de reconocimiento"
   on public.recognition_responses for select
   using (public.is_admin_user());
+
+-- ============================================================
+-- PARTE 11 — Feedback de tipología y diagnóstico, migrado de
+-- localStorage a Supabase. Antes vivía en db.typologyFeedback /
+-- db.diagnosticFeedback (solo en el navegador de cada admin, se
+-- perdía al cambiar de dispositivo o borrar datos del sitio). Ahora
+-- es una tabla real: cualquier usuario autenticado puede insertar su
+-- propio feedback, solo los admins pueden leerlo (panel "Valoración
+-- de Marca"). `kind` distingue los dos tipos de evento que antes eran
+-- dos arreglos separados.
+-- ============================================================
+
+create table if not exists public.brand_feedback (
+  id bigint generated always as identity primary key,
+  user_id uuid references auth.users on delete set null,
+  kind text not null check (kind in ('typology_correction', 'diagnostic_feedback')),
+  -- typology_correction: predicted/corrected tienen el tipo detectado y el
+  -- corregido. diagnostic_feedback: positive indica pulgar arriba/abajo.
+  predicted_typology text,
+  corrected_typology text,
+  positive boolean,
+  overall_score integer,
+  plan text,
+  created_at timestamptz not null default now()
+);
+
+alter table public.brand_feedback enable row level security;
+
+create policy "usuarios registran su propio feedback"
+  on public.brand_feedback for insert
+  with check (auth.uid() = user_id);
+
+create policy "admins ven todo el feedback"
+  on public.brand_feedback for select
+  using (public.is_admin_user());
+
+-- ============================================================
+-- PARTE 12 — Permitir borrar el propio historial de diagnósticos.
+-- "Mi cuenta" ahora deja eliminar un diagnóstico guardado; antes no
+-- había policy de delete, así que un intento de borrar fallaba
+-- silenciosamente por RLS. Solo el dueño de la fila puede borrarla.
+-- ============================================================
+
+create policy "usuarios borran su propio historial"
+  on public.diagnosis_history for delete
+  using (auth.uid() = user_id);
+
+-- ============================================================
+-- PARTE 13 — Perfil de lectura del resultado (General / Diseñador /
+-- Experto), implementado por el colaborador de diseño en el index.html
+-- viejo. Nunca toca el motor de cálculo — solo cuánta profundidad de la
+-- MISMA evaluación se muestra (grilla de indicadores, variables crudas).
+-- Persiste acá para cuentas registradas; para invitados vive en
+-- localStorage (brandex_profile), sin fila de DB que proteger.
+-- ============================================================
+
+alter table public.users add column if not exists profile text not null default 'general';
+alter table public.users add constraint users_profile_check
+  check (profile in ('general', 'disenador', 'experto'));
+
+-- ============================================================
+-- PARTE 14 — Catálogo de planes y paquetes de créditos (Paddle).
+-- Config, no hardcodeada en el código: los price_id y montos viven acá
+-- para poder ajustarlos sin tocar el frontend ni el backend.
+-- ============================================================
+
+create table if not exists public.plans (
+  id text primary key,                    -- 'estudiante' | 'profesional' | 'empresa'
+  name text not null,
+  monthly_price_cents int not null,
+  credits_included int not null,
+  paddle_price_id text not null,
+  active boolean not null default true,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists public.credit_packages (
+  id text primary key,                    -- 'pequeno' | 'mediano' | 'grande' | 'empresa'
+  name text not null,
+  price_cents int not null,
+  credits int not null,
+  paddle_price_id text not null,
+  active boolean not null default true
+);
+
+-- ============================================================
+-- PARTE 15 — Suscripciones. Separa "plan contratado" (esto) de la
+-- tarifa por análisis que hoy vive en users.plan (libre/estandar/pro,
+-- ver api/consume-credit.js) — ese campo NO se toca todavía.
+-- ============================================================
+
+create table if not exists public.subscriptions (
+  id bigint generated always as identity primary key,
+  user_id uuid references auth.users on delete cascade not null,
+  plan_id text references public.plans not null,
+  status text not null,                   -- 'active' | 'past_due' | 'canceled' | 'paused'
+  paddle_subscription_id text unique,
+  current_period_start timestamptz,
+  current_period_end timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+alter table public.subscriptions enable row level security;
+
+create policy "usuarios ven su propia suscripcion"
+  on public.subscriptions for select
+  using (auth.uid() = user_id);
+
+-- ============================================================
+-- PARTE 16 — Compras y protección contra doble cobro. paddle_transaction_id
+-- es unique a propósito: si un webhook de Paddle se reintenta, el insert
+-- falla en vez de acreditar créditos dos veces por el mismo pago.
+-- ============================================================
+
+create table if not exists public.purchases (
+  id bigint generated always as identity primary key,
+  user_id uuid references auth.users on delete cascade not null,
+  kind text not null check (kind in ('subscription', 'credit_package')),
+  package_id text references public.credit_packages,
+  amount_cents int not null,
+  paddle_transaction_id text unique not null,
+  status text not null,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists public.webhook_events (
+  id bigint generated always as identity primary key,
+  provider text not null default 'paddle',
+  event_id text not null,
+  event_type text not null,
+  processed_at timestamptz not null default now(),
+  unique (provider, event_id)               -- idempotencia: webhook reintentado no se procesa dos veces
+);
+
+-- ============================================================
+-- PARTE 17 — Blindaje de saldo negativo. Faltaba: sin esto un bug en
+-- consume-credit.js podría dejar a alguien con créditos en negativo.
+-- ============================================================
+
+alter table public.users add constraint credits_non_negative check (credits >= 0);
+
+-- ============================================================
+-- PARTE 18 — Observabilidad de costo real de IA. Para dejar de estimar
+-- el costo por análisis (~US$0.02-0.03 con claude-sonnet-5) y medirlo
+-- de verdad, análisis por análisis.
+-- ============================================================
+
+create table if not exists public.ai_usage_events (
+  id bigint generated always as identity primary key,
+  user_id uuid references auth.users on delete set null,
+  provider text not null default 'anthropic',
+  model text not null,
+  input_tokens int,
+  output_tokens int,
+  cost_usd_estimate numeric(10,6),
+  created_at timestamptz not null default now()
+);
+
+alter table public.ai_usage_events enable row level security;
+
+create policy "admins ven el uso de ia"
+  on public.ai_usage_events for select
+  using (public.is_admin_user());
+
+-- Seed del catálogo (sección 4 del plan de suscripciones). paddle_price_id
+-- queda en 'pending' hasta crear los productos reales en Paddle; los
+-- planes/paquetes quedan inactivos hasta tener price_id real para que el
+-- frontend no ofrezca comprar algo que aún no se puede cobrar.
+
+insert into public.plans (id, name, monthly_price_cents, credits_included, paddle_price_id, active) values
+  ('estudiante',  'Estudiante',  699,  30,  'pending', false),
+  ('profesional', 'Profesional', 1999, 150, 'pending', false),
+  ('empresa',     'Empresa',     7900, 600, 'pending', false)
+on conflict (id) do nothing;
+
+insert into public.credit_packages (id, name, price_cents, credits, paddle_price_id, active) values
+  ('pequeno', 'Paquete Pequeño', 499,  20,  'pending', false),
+  ('mediano', 'Paquete Mediano', 1299, 60,  'pending', false),
+  ('grande',  'Paquete Grande',  3499, 200, 'pending', false)
+on conflict (id) do nothing;
+
+-- ============================================================
+-- PARTE 19 — Acreditación atómica de créditos para el webhook de Paddle.
+-- "credits = credits + delta" en una sola sentencia evita la carrera
+-- fetch-then-update si dos webhooks llegan a la vez. Solo el servidor
+-- (service role) puede llamarla — se revoca a anon/authenticated.
+-- ============================================================
+
+create or replace function public.add_credits(p_user_id uuid, p_delta int)
+returns int
+language sql
+security definer
+set search_path = public
+as $$
+  update public.users
+     set credits = credits + p_delta
+   where id = p_user_id
+  returning credits;
+$$;
+
+revoke execute on function public.add_credits(uuid, int) from public;
+revoke execute on function public.add_credits(uuid, int) from anon;
+revoke execute on function public.add_credits(uuid, int) from authenticated;
+
+-- ============================================================
+-- PARTE 20 — Guardar el customer_id de Paddle en la suscripción para
+-- poder abrir el Customer Portal hosteado (facturas, cambiar tarjeta,
+-- cancelar) sin construir una pantalla de facturación propia.
+-- ============================================================
+
+alter table public.subscriptions add column if not exists paddle_customer_id text;
+
+-- ============================================================
+-- PARTE 21 — RLS en las tablas de pagos. Sin esto, cualquiera con la
+-- anon key podría escribir el catálogo o leer compras ajenas. El catálogo
+-- es lectura pública (los precios se muestran antes de comprar); todo lo
+-- demás es del dueño o del admin. Escribir solo puede el service role
+-- (webhook), que ignora RLS por diseño.
+-- ============================================================
+
+alter table public.plans enable row level security;
+alter table public.credit_packages enable row level security;
+alter table public.purchases enable row level security;
+alter table public.webhook_events enable row level security;
+
+drop policy if exists "catalogo de planes visible para todos" on public.plans;
+create policy "catalogo de planes visible para todos"
+  on public.plans for select
+  using (true);
+
+drop policy if exists "catalogo de paquetes visible para todos" on public.credit_packages;
+create policy "catalogo de paquetes visible para todos"
+  on public.credit_packages for select
+  using (true);
+
+drop policy if exists "usuarios ven sus propias compras" on public.purchases;
+create policy "usuarios ven sus propias compras"
+  on public.purchases for select
+  using (auth.uid() = user_id);
+
+drop policy if exists "admins ven todas las compras" on public.purchases;
+create policy "admins ven todas las compras"
+  on public.purchases for select
+  using (public.is_admin_user());
+
+drop policy if exists "admins ven todas las suscripciones" on public.subscriptions;
+create policy "admins ven todas las suscripciones"
+  on public.subscriptions for select
+  using (public.is_admin_user());
+
+-- webhook_events: sin políticas — solo el service role la toca.

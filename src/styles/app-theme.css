@@ -1,0 +1,504 @@
+@import "tailwindcss";
+
+/* Tokens oficiales de marca — identidad BRANDEX adoptada del colaborador de
+   diseño (ver index.html subido por avandsc-beep). Los NOMBRES de estas
+   variables quedaron de la paleta CMYK anterior (process-cyan, etc.) — se
+   mantienen así a propósito para no tener que renombrar cientos de usos en
+   toda la hoja de estilos y los componentes, pero el significado cambió:
+   process-cyan y process-yellow son ahora el mismo lima de acento
+   principal, process-magenta es el coral. Ver legacy.css :root, que usa
+   los mismos valores hexadecimales bajo otros nombres de variable. */
+@theme {
+  --color-background: #313130;
+  --color-surface: #1d1a15;
+  --color-surface-dim: #313130;
+  --color-surface-bright: #3c3c3b;
+  --color-surface-container-lowest: #100e0a;
+  --color-surface-container-low: #1d1b17;
+  --color-surface-container: #221f1b;
+  --color-surface-container-high: #2c2a25;
+  --color-surface-container-highest: #4a453c;
+  --color-on-background: #ffffff;
+  --color-on-surface: #ffffff;
+  --color-on-surface-variant: #c9c5ba;
+  --color-outline: #c9c5ba;
+  --color-outline-variant: #4a453c;
+
+  --color-ink-black: #15130f;
+  --color-process-cyan: #d9e021;
+  --color-process-magenta: #e8604a;
+  --color-process-yellow: #d9e021;
+  --color-diagnostic-gray: #3c3c3b;
+
+  --font-display: "MuseoModerno", sans-serif;
+  --font-mono: "Montserrat", sans-serif;
+  --font-body: "Montserrat", sans-serif;
+}
+
+/* ===== Utilidades técnicas compartidas (motivo "prueba de imprenta") =====
+   Portadas del maquetado de Stitch — se usan tal cual en los componentes
+   nuevos a medida que se migran fase por fase. */
+
+.precision-grid {
+  background-image:
+    linear-gradient(to right, rgba(62, 72, 80, 0.4) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(62, 72, 80, 0.4) 1px, transparent 1px);
+  background-size: 32px 32px;
+  background-position: center center;
+}
+
+.precision-grid-dense {
+  background-image:
+    linear-gradient(to right, rgba(135, 146, 155, 0.15) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(135, 146, 155, 0.15) 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+
+/* Miras de registro — brackets en las 4 esquinas de una tarjeta/panel */
+.reg-mark {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  pointer-events: none;
+}
+.reg-mark::before,
+.reg-mark::after {
+  content: '';
+  position: absolute;
+  background-color: #4a453c;
+}
+.reg-mark::before {
+  top: 50%;
+  left: -4px;
+  right: -4px;
+  height: 1px;
+  transform: translateY(-50%);
+}
+.reg-mark::after {
+  left: 50%;
+  top: -4px;
+  bottom: -4px;
+  width: 1px;
+  transform: translateX(-50%);
+}
+.reg-tl { top: -8px; left: -8px; }
+.reg-tr { top: -8px; right: -8px; }
+.reg-bl { bottom: -8px; left: -8px; }
+.reg-br { bottom: -8px; right: -8px; }
+
+/* Tira de control de color decorativa — ya no es CMYK: dos de sus cuatro
+   franjas comparten el mismo lima de acento (misma decisión del
+   colaborador que hizo --cyan y --yellow iguales), la tercera es el coral,
+   la cuarta un gris neutro en vez de negro puro. */
+.cmyk-strip { display: flex; width: 100%; height: 4px; }
+.cmyk-strip > .c-c { flex: 1; background-color: #d9e021; }
+.cmyk-strip > .c-m { flex: 1; background-color: #e8604a; }
+.cmyk-strip > .c-y { flex: 1; background-color: #d9e021; }
+.cmyk-strip > .c-k { flex: 1; background-color: #c9c5ba; }
+
+/* Sombras duras (offset sólido, sin blur) */
+.hard-shadow { box-shadow: 3px 3px 0px 0px #d9e021; }
+.hard-shadow-magenta { box-shadow: 3px 3px 0px 0px #e8604a; }
+.hard-shadow-white { box-shadow: 3px 3px 0px 0px #ffffff; }
+
+/* Sello técnico rotado */
+.stamp-diag {
+  transform: rotate(-6deg);
+  border: 2px solid #d9e021;
+  color: #d9e021;
+  display: inline-block;
+  padding: 6px 14px;
+  text-transform: uppercase;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700;
+  letter-spacing: 2px;
+  box-shadow: 2px 2px 0px 0px #d9e021;
+  background: rgba(21, 19, 15, 0.85);
+  backdrop-filter: blur(4px);
+}
+
+.blinking-cursor::after {
+  content: '_';
+  animation: blink 1s step-start infinite;
+}
+@keyframes blink { 50% { opacity: 0; } }
+
+/* Efecto de barrido al pasar el mouse sobre un botón primario */
+.scanline-btn { position: relative; overflow: hidden; }
+.scanline-btn::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 10px;
+  background: rgba(255, 255, 255, 0.25);
+  transform: rotate(45deg) translateY(-200px);
+  transition: transform 0.5s ease;
+}
+.scanline-btn:hover::after { transform: rotate(45deg) translateY(200px); }
+
+/* Botón "sello de imprenta": se despega de su sombra al pasar el mouse y
+   se hunde contra ella al presionar, en vez de un simple cambio de color.
+   Se combina con hard-shadow/hard-shadow-magenta (que ponen el color). */
+.ink-btn { transition: transform 0.12s ease, box-shadow 0.12s ease, background-color 0.15s ease; }
+.ink-btn:hover { transform: translate(-2px, -2px); }
+.ink-btn:active { transform: translate(1px, 1px); }
+.ink-btn.hard-shadow:hover { box-shadow: 5px 5px 0px 0px #d9e021; }
+.ink-btn.hard-shadow:active { box-shadow: 1px 1px 0px 0px #d9e021; }
+.ink-btn.hard-shadow-magenta:hover { box-shadow: 5px 5px 0px 0px #e8604a; }
+.ink-btn.hard-shadow-magenta:active { box-shadow: 1px 1px 0px 0px #e8604a; }
+.ink-btn.hard-shadow-white:hover { box-shadow: 5px 5px 0px 0px #ffffff; }
+.ink-btn.hard-shadow-white:active { box-shadow: 1px 1px 0px 0px #ffffff; }
+
+/* Tarjeta que se levanta sutilmente al pasar el mouse — para que las
+   grillas de tarjetas (planes, parámetros, indicadores) no se sientan
+   estáticas/planas. */
+.lift-card { transition: transform 0.25s cubic-bezier(0.2,0.8,0.2,1), box-shadow 0.25s ease, border-color 0.2s ease; }
+.lift-card:hover { transform: translateY(-4px); }
+
+/* Aparición escalonada al cargar — usar junto con un --delay inline
+   (style={{animationDelay: `${i*80}ms`}}) para escalonar una grilla. */
+@keyframes fadeSlideUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+.reveal-up { animation: fadeSlideUp 0.6s cubic-bezier(0.2,0.8,0.2,1) both; }
+
+/* Pulso de glow para el elemento destacado (plan recomendado, badges) */
+@keyframes glowPulseCyan {
+  0%, 100% { box-shadow: 6px 6px 0px 0px #d9e021, 0 0 18px rgba(217,224,33,0.25); }
+  50% { box-shadow: 6px 6px 0px 0px #d9e021, 0 0 38px rgba(217,224,33,0.55); }
+}
+.glow-pulse-cyan { animation: glowPulseCyan 2.6s ease-in-out infinite; }
+.glow-pulse-cyan:hover { animation-play-state: paused; }
+
+/* Punto/dot pulsante para chips tipo "en vivo" */
+@keyframes dotPulse { 0%, 100% { opacity: 0.55; transform: scale(1); } 50% { opacity: 1; transform: scale(1.15); } }
+.pulse-dot { animation: dotPulse 1.8s ease-in-out infinite; }
+
+/* CTA con degradado CMY en movimiento — la única acción de la landing que
+   se permite este nivel de fiesta (misma idea que la vieja .hero-cta). */
+@keyframes ctaGradientShift { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+.cta-gradient {
+  background: linear-gradient(115deg, #d9e021, #e8604a, #d9e021, #d9e021);
+  background-size: 300% 100%;
+  animation: ctaGradientShift 6s ease infinite;
+}
+
+/* Anillo de mira giratorio + glow — pantalla de login */
+@keyframes miraSpin { to { transform: rotate(360deg); } }
+@keyframes miraPulseGlow { 0%, 100% { opacity: 0.5; transform: scale(1); } 50% { opacity: 1; transform: scale(1.12); } }
+.mira-ring { animation: miraSpin 18s linear infinite; }
+.mira-glow { animation: miraPulseGlow 3.2s ease-in-out infinite; }
+
+@keyframes slowSpin { to { transform: rotate(360deg); } }
+.slow-spin { animation: slowSpin 90s linear infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .blinking-cursor::after { animation: none; }
+  .scanline-btn::after { transition: none; display: none; }
+  .reveal-up { animation: none; opacity: 1; transform: none; }
+  .glow-pulse-cyan, .pulse-dot, .cta-gradient, .mira-ring, .mira-glow, .slow-spin { animation: none; }
+  .lift-card:hover, .ink-btn:hover, .ink-btn:active { transform: none; }
+}
+
+/* ===== Sistema "amigable" BRANDEX (maquetación real del colaborador) =====
+   Prefijo bx- a propósito: legacy.css todavía define .card/.btn/
+   .score-display/.verdict-stamp con la ESTÉTICA VIEJA de sello de imprenta
+   (bordes duros, sombra offset, insignia rotada) — esas reglas siguen
+   cargadas globalmente aunque legacy ya no se monta, así que un nombre
+   compartido pisaría con la cascada. Estas son las reglas FINALES que
+   subió el colaborador tras el rebrand: tarjetas redondeadas, sin sombra
+   dura, insignia de veredicto como pastilla simple sin rotar (ver su
+   comentario: "ya no es un sello de imprenta girado, esa referencia no
+   encaja con esta identidad nueva"). */
+.bx-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-outline-variant);
+  border-radius: 18px;
+  padding: 1.5rem;
+}
+@media (min-width: 640px) { .bx-card { padding: 2rem; } }
+
+.bx-card-title {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--color-process-cyan);
+  border-bottom: 1px solid var(--color-outline-variant);
+  padding-bottom: 0.65rem;
+  margin-bottom: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.35rem 0.5rem;
+}
+.bx-card-title .bx-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--color-on-surface-variant);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 500;
+}
+
+.bx-score-display {
+  text-align: center;
+  padding: 2rem 1.5rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-outline-variant);
+  border-radius: 14px;
+  position: relative;
+  overflow: hidden;
+}
+.bx-score-display::before {
+  content: '';
+  position: absolute;
+  top: -60%; left: 50%;
+  width: 220px; height: 220px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  border: 1px solid var(--color-outline-variant);
+  pointer-events: none;
+}
+.bx-score-value { font-family: var(--font-mono); font-size: 3.2rem; font-weight: 600; color: var(--color-on-surface); position: relative; }
+.bx-score-value span { font-size: 1.4rem; color: var(--color-on-surface-variant); }
+.bx-score-label { font-family: var(--font-mono); font-size: 0.68rem; color: var(--color-on-surface-variant); text-transform: uppercase; letter-spacing: 0.1em; margin-top: 0.3rem; }
+
+.bx-verdict-pill {
+  position: absolute;
+  top: -14px; right: 16px;
+  padding: 0.55rem 1.1rem;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.35);
+  z-index: 2;
+}
+.bx-verdict-pill-text {
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #1d1a15;
+  text-align: center;
+  white-space: nowrap;
+}
+@media (max-width: 560px) {
+  .bx-verdict-pill { top: -10px; right: 8px; padding: 0.42rem 0.85rem; }
+  .bx-verdict-pill-text { font-size: 0.72rem; }
+}
+
+.bx-strip {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-outline-variant);
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+}
+.bx-strip img {
+  width: 64px; height: 64px;
+  object-fit: contain;
+  border-radius: 8px;
+  border: 1px solid var(--color-outline-variant);
+  background: repeating-conic-gradient(#2a251e 0% 25%, #221e18 0% 50%) 50% / 12px 12px;
+  flex-shrink: 0;
+}
+
+/* Header/footer fijos con degradado azul — no una barra oscura
+   translúcida con tira CMYK. Siempre en blanco, sin importar el tema
+   (ver su comentario: "el header siempre es azul, sin importar el
+   tema"). El header pasa de sticky a fixed, así que el layout necesita
+   compensar el espacio (ver App.jsx / PostAuthApp.jsx, padding-top). */
+.bx-header {
+  background: linear-gradient(135deg, #0086c1, #009ee2);
+  color: #fff;
+}
+.bx-header a, .bx-header button:not(.bx-btn) { color: #fff; }
+.bx-footer {
+  background: linear-gradient(135deg, #0086c1, #009ee2);
+  color: rgba(255,255,255,0.95);
+}
+
+/* Tarjeta de login/entrada — calcada de .login-card, con ícono animado
+   (.login-stage/.login-icon-wrap) y crédito de marca al pie. */
+.bx-login-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-outline-variant);
+  border-radius: 20px;
+  padding: 3rem 2.5rem;
+  text-align: center;
+  max-width: 420px;
+  width: 100%;
+  box-shadow: 0 24px 70px rgba(0,0,0,0.4);
+}
+@media (max-width: 480px) { .bx-login-card { padding: 2.5rem 1.5rem; } }
+.bx-login-stage { position: relative; width: 128px; height: 128px; margin: 0 auto 1.5rem; display: flex; align-items: center; justify-content: center; }
+.bx-login-stage::before {
+  content: '';
+  position: absolute; inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(217,224,33,0.22), transparent 70%);
+  animation: bxPulseGlow 3.2s ease-in-out infinite;
+}
+.bx-login-icon-wrap { width: 100px; height: 100px; position: relative; z-index: 1; }
+@keyframes bxPulseGlow { 0%, 100% { opacity: 0.55; transform: scale(1); } 50% { opacity: 1; transform: scale(1.1); } }
+
+.bx-plan-card {
+  background: var(--color-background);
+  border: 1px solid var(--color-outline-variant);
+  border-radius: 10px;
+  padding: 1rem;
+  text-align: center;
+  transition: border-color 0.15s;
+}
+.bx-plan-card:hover { border-color: var(--color-process-cyan); }
+.bx-plan-name { font-family: var(--font-display); font-weight: 600; font-size: 0.9rem; color: var(--color-on-surface); margin-bottom: 0.3rem; }
+.bx-plan-price { font-family: var(--font-mono); font-size: 1.15rem; font-weight: 600; color: var(--color-process-cyan); margin-bottom: 0.3rem; }
+.bx-plan-price::after { content: ' cr'; font-size: 0.6rem; color: var(--color-on-surface-variant); }
+.bx-plan-desc { font-size: 0.74rem; color: var(--color-on-surface-variant); line-height: 1.4; }
+
+.bx-btn {
+  padding: 0.65rem 1.3rem;
+  border: 1px solid var(--color-outline-variant);
+  background: var(--color-surface-container-highest);
+  color: var(--color-on-surface);
+  font-family: var(--font-body);
+  font-size: 0.88rem;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 14px;
+  transition: all 0.15s;
+}
+.bx-btn:hover { background: var(--color-outline-variant); }
+.bx-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.bx-btn-primary, .bx-btn-accent { background: var(--color-surface-container-highest); border-color: var(--color-outline-variant); color: var(--color-process-cyan); font-weight: 700; }
+.bx-btn-primary:hover, .bx-btn-accent:hover { background: var(--color-outline-variant); border-color: var(--color-process-cyan); }
+.bx-btn-success { background: var(--color-surface-container-highest); border-color: var(--color-outline-variant); color: #7ed957; font-weight: 700; }
+
+.bx-upload-area {
+  border: 1.5px dashed var(--color-outline-variant);
+  background: var(--color-background);
+  padding: 2.25rem 1.5rem;
+  text-align: center;
+  cursor: pointer;
+  border-radius: 12px;
+  transition: all 0.15s;
+}
+.bx-upload-area:hover, .bx-upload-area.dragover { border-color: var(--color-process-cyan); background: var(--color-surface-container-highest); }
+
+.bx-form-group { margin-bottom: 0.85rem; }
+.bx-form-group label { display: block; margin-bottom: 0.35rem; font-size: 0.78rem; font-weight: 600; color: var(--color-on-surface-variant); }
+.bx-form-input {
+  width: 100%;
+  padding: 0.65rem 0.75rem;
+  background: var(--color-background);
+  border: 1px solid var(--color-outline-variant);
+  border-radius: 8px;
+  color: var(--color-on-surface);
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+}
+.bx-form-input:focus { outline: none; border-color: var(--color-process-cyan); }
+textarea.bx-form-input { resize: vertical; min-height: 60px; }
+
+.bx-control-row { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.55rem; }
+.bx-control-row label { min-width: 110px; font-size: 0.75rem; color: var(--color-on-surface-variant); font-weight: 500; }
+.bx-control-row input[type="range"] { flex: 1; accent-color: var(--color-process-cyan); }
+.bx-control-row span { min-width: 35px; text-align: right; font-family: var(--font-mono); font-size: 0.72rem; color: var(--color-on-surface-variant); }
+
+.bx-modal-content { background: var(--color-surface); border: 1px solid var(--color-outline-variant); border-radius: 14px; padding: 1.5rem; max-width: 420px; width: 92%; }
+.bx-modal-content h2 { font-family: var(--font-display); font-size: 1.1rem; margin-bottom: 0.85rem; }
+
+.bx-category-section { margin-bottom: 1rem; border: 1px solid var(--color-outline-variant); border-radius: 10px; overflow: hidden; }
+.bx-category-header { padding: 0.65rem 0.9rem; font-weight: 600; font-size: 0.85rem; display: flex; justify-content: space-between; align-items: center; font-family: var(--font-mono); }
+.bx-category-body { padding: 0.9rem; background: var(--color-surface); }
+.bx-indicator-item { padding: 0.9rem; border: 1px solid var(--color-outline-variant); border-radius: 8px; background: var(--color-background); margin-bottom: 0.6rem; }
+.bx-indicator-item:last-child { margin-bottom: 0; }
+.bx-score-bar { height: 5px; background: var(--color-outline-variant); border-radius: 3px; overflow: hidden; margin: 0.4rem 0; }
+.bx-score-fill { height: 100%; transition: width 0.8s; }
+.bx-confidence-bar { height: 4px; background: var(--color-outline-variant); border-radius: 2px; overflow: hidden; }
+.bx-confidence-fill { height: 100%; background: var(--color-process-cyan); transition: width 0.8s; }
+
+/* ===== Facturación (suscripciones y paquetes vía Paddle) =====
+   Mismo lenguaje que bx-plan-card pero con la jerarquía de una tarjeta de
+   precio real: el número es el protagonista (Montserrat semibold, como
+   bx-score-value), el plan destacado lleva borde lima y pastilla, y los
+   estados de suscripción usan el color semántico de la casa (lima = al
+   día, coral = atención). */
+.bx-price-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.75rem; }
+.bx-price-card {
+  position: relative;
+  background: var(--color-background);
+  border: 1px solid var(--color-outline-variant);
+  border-radius: 12px;
+  padding: 1.15rem 1rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  text-align: center;
+  transition: border-color 0.15s, transform 0.15s;
+}
+.bx-price-card:hover { border-color: var(--color-process-cyan); transform: translateY(-2px); }
+@media (prefers-reduced-motion: reduce) { .bx-price-card:hover { transform: none; } }
+.bx-price-card.bx-featured { border-color: var(--color-process-cyan); }
+.bx-featured-pill {
+  position: absolute;
+  top: -10px; left: 50%;
+  transform: translateX(-50%);
+  background: var(--color-process-cyan);
+  color: var(--color-ink-black);
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 0.2rem 0.65rem;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.bx-price-name { font-family: var(--font-display); font-weight: 600; font-size: 0.92rem; color: var(--color-on-surface); }
+.bx-price-value { font-family: var(--font-mono); font-size: 1.5rem; font-weight: 600; color: var(--color-process-cyan); line-height: 1.1; margin-top: 0.15rem; }
+.bx-price-value .bx-price-cur { font-size: 0.7rem; font-weight: 500; color: var(--color-on-surface-variant); vertical-align: super; margin-right: 0.1rem; }
+.bx-price-value .bx-price-per { font-size: 0.68rem; font-weight: 500; color: var(--color-on-surface-variant); }
+.bx-price-credits { font-size: 0.76rem; color: var(--color-on-surface); font-weight: 600; margin-top: 0.15rem; }
+.bx-price-note { font-size: 0.68rem; color: var(--color-on-surface-variant); margin-bottom: 0.55rem; }
+.bx-price-card .bx-btn { margin-top: auto; width: 100%; padding: 0.5rem 0.75rem; font-size: 0.8rem; }
+
+.bx-sub-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1rem;
+  background: var(--color-background);
+  border: 1px solid var(--color-outline-variant);
+  border-radius: 12px;
+  padding: 1rem 1.15rem;
+}
+.bx-status-pill {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  padding: 0.22rem 0.6rem;
+  border-radius: 999px;
+}
+.bx-status-ok { background: rgba(217, 224, 33, 0.14); color: var(--color-process-cyan); }
+.bx-status-warn { background: rgba(232, 96, 74, 0.16); color: var(--color-process-magenta); }
+.bx-status-muted { background: var(--color-surface-container-highest); color: var(--color-on-surface-variant); }
+
+/* ===== Impresión / exportar informe =====
+   Elementos marcados `print:hidden` (utilidad nativa de Tailwind) ya
+   desaparecen solos al imprimir. Lo único que hace falta a mano es: forzar
+   papel blanco/texto oscuro (todo el resto del sitio es tema oscuro), y el
+   interruptor "resumen vs. completo" — legacy lo resolvía con una clase en
+   <body>; el mismo mecanismo, sobre las secciones nuevas marcadas
+   data-print-detail. */
+@media print {
+  body { background: #ffffff !important; color: #15130f !important; }
+  body.print-summary [data-print-detail] { display: none !important; }
+}

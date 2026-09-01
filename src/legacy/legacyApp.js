@@ -1,4 +1,6 @@
-﻿export function initLegacyApp() {
+﻿import { supabaseClient } from '../lib/supabaseClient.js';
+
+export function initLegacyApp() {
 /* =========================================================
            BASE DE DATOS LOCAL (interina)
            Hoy vive en localStorage del navegador. Esto significa que
@@ -16,11 +18,6 @@
            (ej. pruebas), pon esto en true temporalmente.
            ========================================================= */
         const TESTING_MODE = false;
-
-        // ============ Conexión real a Supabase ============
-        const SUPABASE_URL = 'https://pybgughzjqzgbbsfklwi.supabase.co';
-        const SUPABASE_ANON_KEY = 'sb_publishable_mpRmXAFo-DEIMSMloI_OOg_-RzelkR-';
-        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         // db: solo datos locales/cosméticos (no créditos, no cuentas — eso vive en Supabase).
         let db = { introSeen: false, lastUser: null, typologyFeedback: [], diagnosticFeedback: [] };
@@ -1092,7 +1089,7 @@
         // Revela las tarjetas de planes con un pequeño stagger cuando entran
         // en pantalla, en vez de mostrarlas todas de golpe.
         function initPricingReveal() {
-            const cards = document.querySelectorAll('.pricing-card');
+            const cards = document.querySelectorAll('.pricing-card, .methodology-card');
             if (!cards.length) return;
             const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
             if (reduced) { cards.forEach(c => c.classList.add('in-view')); return; }

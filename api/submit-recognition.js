@@ -27,7 +27,7 @@ export default async function handler(req, res) {
 
     const { data: sample, error: sampleError } = await supabaseAdmin
         .from('calibration_samples')
-        .select('typology')
+        .select('typology, notes, brand_name')
         .eq('id', sampleId)
         .single();
     if (sampleError || !sample) return res.status(404).json({ error: 'Muestra no encontrada' });
@@ -49,5 +49,11 @@ export default async function handler(req, res) {
     const newCredits = (profile ? profile.credits : 0) + 1;
     await supabaseAdmin.from('users').update({ credits: newCredits }).eq('id', user.id);
 
-    return res.status(200).json({ correct, correctType: sample.typology, remainingCredits: newCredits });
+    return res.status(200).json({
+        correct,
+        correctType: sample.typology,
+        remainingCredits: newCredits,
+        notes: sample.notes || null,
+        correctBrandName: sample.brand_name || null,
+    });
 };

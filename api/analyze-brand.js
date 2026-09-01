@@ -36,6 +36,10 @@ export default async function handler(req, res) {
   const authHeader = req.headers.authorization || "";
   const token = authHeader.replace("Bearer ", "");
 
+  // Se conserva para atribuir el costo real de IA en ai_usage_events
+  // (invitados quedan como null — el gasto igual se registra).
+  let requestUserId = null;
+
   if (token) {
     const {
       data: { user },
@@ -44,6 +48,7 @@ export default async function handler(req, res) {
     if (authError || !user) {
       return res.status(401).json({ error: "Sesión inválida" });
     }
+    requestUserId = user.id;
   } else {
     const ip = (
       (req.headers["x-forwarded-for"] ||
@@ -258,6 +263,25 @@ export default async function handler(req, res) {
           error:
             (data.error && data.error.message) || "Error llamando a Claude",
         });
+    }
+
+    // Observabilidad (PARTE 18): registrar el costo REAL de cada análisis
+    // en vez de estimarlo. claude-sonnet-5: US$2/M entrada, US$10/M salida.
+    // Si este insert falla no debe romper el análisis del usuario.
+    if (data.usage) {
+      const inputTokens = data.usage.input_tokens || 0;
+      const outputTokens = data.usage.output_tokens || 0;
+      const { error: usageError } = await supabaseAdmin
+        .from("ai_usage_events")
+        .insert({
+          user_id: requestUserId,
+          provider: "anthropic",
+          model: data.model || "claude-sonnet-5",
+          input_tokens: inputTokens,
+          output_tokens: outputTokens,
+          cost_usd_estimate: (inputTokens * 2 + outputTokens * 10) / 1e6,
+        });
+      if (usageError) console.error("ai_usage_events:", usageError.message);
     }
 
     const toolUse = (data.content || []).find((b) => b.type === "tool_use");

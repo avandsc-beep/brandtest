@@ -1,17 +1,32 @@
 {
-  "name": "BrandTest",
-  "short_name": "BrandTest",
-  "description": "Valoracion tecnica de marcas graficas.",
+  "name": "BRANDEX — Validación de Marcas Gráficas",
+  "short_name": "BRANDEX",
+  "description": "Instrumento de medición de marcas gráficas basado en los indicadores de calidad de Chaves y Belluccia.",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#15130F",
-  "theme_color": "#15130F",
+  "orientation": "portrait-primary",
+  "background_color": "#313130",
+  "theme_color": "#0086C1",
+  "lang": "es",
   "icons": [
     {
-      "src": "/icons/icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }

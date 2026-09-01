@@ -1,56 +1,26 @@
 // test_engine.js — Pruebas de regresión del motor de BrandTest.
-// Se extraen las funciones puras directamente del cuerpo de initLegacyApp()
-// en src/legacy/legacyApp.js (no una copia pegada aparte), así que nunca
-// se desalinean con lo publicado.
+// Importa directamente los módulos puros de src/lib/* (ya no extrae
+// funciones por regex del closure de src/legacy/legacyApp.js — ese
+// mecanismo era necesario mientras el motor vivía atrapado ahí adentro;
+// ahora que vive en módulos ES reales, importar es más simple y directo).
 // Uso: node test_engine.js  (desde la raíz del proyecto)
 
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import { relLuminance, contrastRatioOf, colorDistance, rgbToLab, deltaE, mergePerceptualColors } from './src/lib/colorMath.js';
+import { computeSymmetry, computeEdgeDensity } from './src/lib/imageComponents.js';
+import { classifyColors } from './src/lib/imageAnalysis.js';
+import { typologies, detectTypologyReal } from './src/lib/typology.js';
+import { evaluableIndicators, categories, evaluateIndicatorsReal, calculateOverall, diagnosticVerdict, getGateInfo, gateIndicatorKeys } from './src/lib/scoring.js';
+import { simulateColorblind } from './src/lib/colorblind.js';
+import { getInitials } from './src/lib/textUtils.js';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-
-const engineSource = fs.readFileSync(path.join(__dirname, 'src/legacy/legacyApp.js'), 'utf8');
-const match = engineSource.match(/export function initLegacyApp\(\)\s*\{([\s\S]*)\}\s*$/);
-if (!match) throw new Error('No se encontró el cuerpo de initLegacyApp() en src/legacy/legacyApp.js');
-const scriptBody = match[1];
-
-// Stub mínimo de `document`: el script registra un listener de
-// DOMContentLoaded a nivel superior; sin este stub, eval() del script
-// completo fallaría antes de definir las funciones que queremos probar.
-const documentStub = {
-    addEventListener: () => {},
-    getElementById: () => null,
-    querySelectorAll: () => [],
-    querySelector: () => null,
-    createElement: () => ({ getContext: () => ({}) }),
+const M = {
+  relLuminance, contrastRatioOf, colorDistance, rgbToLab, deltaE, mergePerceptualColors,
+  computeSymmetry, computeEdgeDensity, classifyColors,
+  typologies, detectTypologyReal,
+  evaluableIndicators, categories, evaluateIndicatorsReal, calculateOverall, diagnosticVerdict,
+  getGateInfo, gateIndicatorKeys,
+  simulateColorblind, getInitials,
 };
-const windowStub = {
-    matchMedia: () => ({ matches: false }),
-    supabase: {
-        createClient: () => ({
-            auth: { getSession: async () => ({ data: { session: null } }), onAuthStateChange: () => {}, signInWithOAuth: async () => ({}), signOut: async () => ({}) },
-            from: () => ({ select: () => ({ eq: () => ({ single: async () => ({ data: null }) }) }), update: () => ({ eq: async () => ({}) }) })
-        })
-    }
-};
-const navigatorStub = { mediaDevices: null };
-const localStorageStub = { getItem: () => null, setItem: () => {} };
-
-const wrapped = new Function(
-    'document', 'window', 'navigator', 'localStorage',
-    scriptBody + `
-    return {
-        relLuminance, contrastRatioOf, colorDistance, computeSymmetry, computeEdgeDensity,
-        classifyColors, calculateOverall, diagnosticVerdict, evaluateIndicatorsReal,
-        detectTypologyReal, getInitials, floodFillComponents, groupComponents,
-        evaluableIndicators, typologies, categories,
-        rgbToLab, deltaE, mergePerceptualColors,
-        simulateColorblind,
-        getGateInfo, gateIndicatorKeys
-    };`
-);
-const M = wrapped(documentStub, windowStub, navigatorStub, localStorageStub);
 
 // ---- utilidades mínimas de aserción ----
 let pass = 0, fail = 0;
@@ -276,10 +246,4 @@ assert(M.getInitials('') === '?', 'nombre vacío debe devolver "?"');
 
 // ============================================================
 console.log(`\n${pass} pruebas OK, ${fail} fallaron.`);
-// Salida inmediata y síncrona: initLegacyApp() también dispara el arranque
-// completo de la app (startLegacyApp(), sin esperar) al evaluar su cuerpo,
-// y los stubs de este harness son deliberadamente mínimos (solo cubren las
-// funciones puras que se prueban arriba) — sin esto, ese arranque de fondo
-// termina lanzando un rechazo de promesa no manejado sobre un DOM que no
-// existe, después de que el resultado real ya se imprimió.
 process.exit(fail > 0 ? 1 : 0);

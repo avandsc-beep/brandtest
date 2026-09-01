@@ -1,16 +1,24 @@
 ﻿:root {
-        --bg: #15130F;
+        --bg: #313130;
         --surface: #1D1A15;
-        --surface-hover: #262119;
-        --border: #38332A;
-        --border-soft: #2A251E;
-        --text: #EDE8DD;
-        --text-muted: #9A9285;
-        --cyan: #009EE2;
-        --magenta: #E85D8A;
-        --yellow: #E8B23D;
-        --success: #4FAE7A;
-        --danger: #D9614F;
+        --surface-hover: #3C3C3B;
+        --border: #4A453C;
+        --border-soft: #2E2B26;
+        --text: #FFFFFF;
+        --text-muted: #C9C5BA;
+        /* Identidad BRANDEX (colaborador de diseño). Los NOMBRES de estas
+           variables quedaron de la paleta CMYK anterior (ver
+           src/styles/app-theme.css, que define los mismos valores como
+           tokens de Tailwind para los componentes nuevos) — se mantienen
+           así a propósito para no tener que renombrar cientos de usos de
+           var(--cyan) etc. en toda la hoja de estilos, pero el significado
+           cambió por completo: --cyan ahora es el lima/acento principal de
+           BRANDEX, no un cian. Antes: #00AEEF / #EC008C / #FFF200. */
+        --cyan: #D9E021;
+        --magenta: #E8604A;
+        --yellow: #D9E021;
+        --success: #7ED957;
+        --danger: #E8604A;
         --primary: var(--cyan);
         --cat1: var(--cyan);
         --cat3: var(--magenta);
@@ -19,24 +27,28 @@
            imprenta — no cambia con el tema, porque una sombra impresa no
            se aclara en modo claro; siempre es la plancha de fondo. */
         --ink: #15130F;
-        --font-display: 'Big Shoulders Display', sans-serif;
-        --font-stencil: 'Big Shoulders Stencil', sans-serif;
-        --font-mono: 'IBM Plex Mono', monospace;
-        --font-body: 'IBM Plex Sans', sans-serif;
+        --font-display: 'MuseoModerno', sans-serif;
+        /* Antes IBM Plex Mono / Big Shoulders Stencil — la identidad
+           BRANDEX solo usa MuseoModerno y Montserrat, así que --font-mono
+           y --font-stencil ahora valen Montserrat también. Se mantienen
+           los nombres de variable para no tocar los usos existentes. */
+        --font-stencil: 'MuseoModerno', sans-serif;
+        --font-mono: 'Montserrat', sans-serif;
+        --font-body: 'Montserrat', sans-serif;
     }
 
     /* Modo claro — no usa blanco puro, un tono cálido cercano al papel */
     [data-theme="light"] {
-        --bg: #FFFAE5;
+        --bg: #FAFAFA;
         --surface: #FFFFFF;
-        --surface-hover: #FFF3CC;
-        --border: #E8DCB0;
-        --border-soft: #F0E6C4;
-        --text: #211D14;
-        --text-muted: #6B6354;
-        --cyan: #006894;
+        --surface-hover: #F0F0F0;
+        --border: #D9D9D9;
+        --border-soft: #EAEAEA;
+        --text: #1A1A1A;
+        --text-muted: #5C5C5C;
+        --cyan: #A6AE00;
         --magenta: #C43D6B;
-        --yellow: #B8791F;
+        --yellow: #A6AE00;
         --success: #2E7D52;
         --danger: #B8402F;
     }
@@ -54,12 +66,23 @@
     body {
         font-family: var(--font-body);
         background: var(--bg);
+        /* Retícula de precisión de fondo — la misma textura de "mesa de
+           dibujo técnico" a la que ya apuntan las miras de registro, ahora
+           como trama sutil detrás de toda la interfaz, no solo el hero. */
         background-image: radial-gradient(circle at 12% 8%, rgba(0,185,198,0.05), transparent 40%),
-                           radial-gradient(circle at 88% 92%, rgba(232,93,138,0.05), transparent 40%);
+                           radial-gradient(circle at 88% 92%, rgba(232,93,138,0.05), transparent 40%),
+                           linear-gradient(to right, var(--border-soft) 1px, transparent 1px),
+                           linear-gradient(to bottom, var(--border-soft) 1px, transparent 1px);
+        background-size: auto, auto, 42px 42px, 42px 42px;
         color: var(--text);
         line-height: 1.6;
         min-height: 100vh;
     }
+    [data-theme="light"] body { background-image: radial-gradient(circle at 12% 8%, rgba(0,105,148,0.04), transparent 40%),
+                           radial-gradient(circle at 88% 92%, rgba(196,61,107,0.04), transparent 40%),
+                           linear-gradient(to right, var(--border-soft) 1px, transparent 1px),
+                           linear-gradient(to bottom, var(--border-soft) 1px, transparent 1px); }
+    @media print { body { background-image: none !important; } }
 
     body.menu-open-lock { overflow: hidden; }
 
@@ -121,6 +144,16 @@
         position: sticky;
         top: 0;
         z-index: 100;
+    }
+    /* Banda CMYK — la misma "cabecera de plancha de imprenta" que ya
+       separa el hero de la sección de planes, ahora también en el borde
+       superior del header fijo, en todas las pantallas. */
+    .header::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 3px;
+        background: linear-gradient(to right, var(--cyan) 0 25%, var(--magenta) 25% 50%, var(--yellow) 50% 75%, var(--text-muted) 75% 100%);
     }
 
     .header-content {
@@ -294,16 +327,35 @@
     @media (min-width: 1680px) { .container { max-width: 1320px; } }
 
     .card {
-        background: var(--surface);
+        position: relative;
+        background-color: var(--surface);
         border: 2px solid var(--border);
         border-radius: 10px;
         padding: 1.5rem;
         margin-bottom: 1.75rem;
         box-shadow: 6px 6px 0 0 var(--magenta), 0 8px 28px rgba(232,93,138,0.16);
         transition: box-shadow 0.2s ease, transform 0.2s ease;
+        /* Miras de registro en las 4 esquinas — el mismo gesto de imprenta
+           que ya usa el header/hero, ahora en cada tarjeta. Se dibujan con
+           gradientes de fondo (sin marcado extra) para no repetir 4 divs
+           por tarjeta en decenas de lugares del HTML. */
+        --reg-color: var(--border);
+        background-image:
+            linear-gradient(var(--reg-color), var(--reg-color)), linear-gradient(var(--reg-color), var(--reg-color)),
+            linear-gradient(var(--reg-color), var(--reg-color)), linear-gradient(var(--reg-color), var(--reg-color)),
+            linear-gradient(var(--reg-color), var(--reg-color)), linear-gradient(var(--reg-color), var(--reg-color)),
+            linear-gradient(var(--reg-color), var(--reg-color)), linear-gradient(var(--reg-color), var(--reg-color));
+        background-repeat: no-repeat;
+        background-size: 12px 2px, 2px 12px, 12px 2px, 2px 12px, 12px 2px, 2px 12px, 12px 2px, 2px 12px;
+        background-position:
+            left 10px top 10px, left 10px top 10px,
+            right 10px top 10px, right 10px top 10px,
+            left 10px bottom 10px, left 10px bottom 10px,
+            right 10px bottom 10px, right 10px bottom 10px;
     }
+    .card:hover { --reg-color: var(--cyan); }
     [data-theme="light"] .card { box-shadow: 6px 6px 0 0 var(--magenta), 0 8px 24px rgba(232,93,138,0.12); }
-    #uploadCard, #contextCard {
+    #uploadCard, #contextCard, #typologyCard, #planCard {
         border-color: var(--cyan);
         box-shadow: 6px 6px 0 0 var(--cyan), 0 8px 28px rgba(0,185,198,0.2);
     }
@@ -549,10 +601,56 @@
     .pricing-footnote strong { color: var(--text); }
 
     @media (prefers-reduced-motion: reduce) {
-        .pricing-card { transition: none; opacity: 1; transform: none; }
+        .pricing-card, .methodology-card { transition: none; opacity: 1; transform: none; }
         .pricing-card-popular { transform: none; animation: none; box-shadow: 6px 6px 0 0 var(--cyan), 0 0 18px rgba(0,185,198,0.25); }
         .pricing-card:hover, .pricing-card:hover.in-view, .pricing-card-popular:hover.in-view { transform: none; }
     }
+
+    /* ===== Metodología (landing) — explica los 6 indicadores que ya se
+       calculan en el informe, agrupados en las 3 dimensiones del marco de
+       Chaves y Belluccia. Reutiliza el encabezado de .pricing-header para
+       no duplicar estilos de eyebrow/título/subtítulo. ===== */
+    .methodology-section { width: 100%; margin-top: 2.5rem; padding: 3rem 1.5rem; }
+    .methodology-grid {
+        max-width: 1000px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.25rem;
+    }
+    @media (max-width: 900px) { .methodology-grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 600px) { .methodology-grid { grid-template-columns: 1fr; max-width: 380px; } }
+
+    .methodology-card {
+        position: relative;
+        background-color: var(--surface);
+        border: 2px solid var(--border);
+        border-radius: 12px;
+        padding: 1.5rem;
+        opacity: 0;
+        transform: translateY(22px);
+        box-shadow: 5px 5px 0 0 var(--mc-accent, var(--cyan)), 0 6px 20px rgba(0,0,0,0.14);
+        transition: transform 0.45s cubic-bezier(0.2,0.8,0.2,1), opacity 0.45s ease,
+                    border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .methodology-card.in-view { opacity: 1; transform: translateY(0); }
+    .methodology-card:hover { border-color: var(--mc-accent, var(--cyan)); transform: translate(-2px, -2px); }
+    .methodology-card[data-cat="1"] { --mc-accent: var(--cyan); }
+    .methodology-card[data-cat="3"] { --mc-accent: var(--magenta); }
+    .methodology-card[data-cat="4"] { --mc-accent: var(--yellow); }
+
+    .mc-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.9rem; }
+    .mc-num { font-family: var(--font-mono); font-size: 1.4rem; font-weight: 600; color: var(--mc-accent, var(--cyan)); }
+    .mc-tag {
+        font-family: var(--font-mono); font-size: 0.56rem; font-weight: 700;
+        text-transform: uppercase; letter-spacing: 0.05em;
+        padding: 0.2rem 0.5rem; border: 1px solid var(--mc-accent, var(--cyan));
+        color: var(--mc-accent, var(--cyan)); border-radius: 3px; white-space: nowrap;
+    }
+    .mc-name { font-family: var(--font-display); font-size: 1.05rem; font-weight: 700; text-transform: uppercase; margin-bottom: 0.65rem; }
+    .mc-divider { height: 2px; width: 100%; background: var(--border-soft); margin-bottom: 0.85rem; transition: background 0.2s ease; }
+    .methodology-card:hover .mc-divider { background: var(--mc-accent, var(--cyan)); }
+    .mc-desc { font-size: 0.82rem; color: var(--text-muted); line-height: 1.6; }
 
     .intro-footer {
         text-align: center;
@@ -636,8 +734,23 @@
         font-family: var(--font-display); font-weight: 700; font-size: 2.1rem;
         position: relative; z-index: 1; letter-spacing: 0;
     }
-    .login-eyebrow { font-family: var(--font-mono); font-size: 0.72rem; color: var(--cyan); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 0.75rem; font-weight: 600; }
-    .login-title { font-family: var(--font-display); font-size: 3.2rem; line-height: 1.05; font-weight: 700; margin-bottom: 0.75rem; letter-spacing: 0.005em; text-transform: uppercase; }
+    .login-eyebrow {
+        display: inline-flex; align-items: center; gap: 0.5rem;
+        font-family: var(--font-mono); font-size: 0.72rem; color: var(--cyan);
+        text-transform: uppercase; letter-spacing: 0.12em; font-weight: 600;
+        margin-bottom: 1rem;
+        padding: 0.35rem 0.9rem 0.35rem 0.7rem;
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        background: var(--surface-hover);
+    }
+    .login-eyebrow::before {
+        content: '';
+        width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+        background: var(--cyan);
+        animation: pulseGlow 2s ease-in-out infinite;
+    }
+    .login-title { font-family: var(--font-display); font-size: 3.2rem; line-height: 1.05; font-weight: 700; margin-bottom: 0.75rem; letter-spacing: 0.005em; text-transform: uppercase; text-shadow: 3px 3px 0 var(--magenta); }
     .login-subtitle { font-size: 1rem; color: var(--text-muted); margin-bottom: 2rem; }
     @media (max-width: 560px) {
         .login-title { font-size: 2.1rem; }
@@ -700,7 +813,7 @@
     @keyframes miraColorCycleBg { 0%, 100% { background: var(--cyan); } 33% { background: var(--magenta); } 66% { background: var(--yellow); } }
     @media (prefers-reduced-motion: reduce) {
         .login-ring .anim, .login-ring, .login-center-dot, .login-stage::before, .hero-decor,
-        .intro-icon, .intro-icon .anim,
+        .intro-icon, .intro-icon .anim, .login-eyebrow::before,
         .step-badge, .upload-icon, .brand-mark, .brand-mark .brand-logo-mark { animation: none; }
     }
 
@@ -1293,7 +1406,7 @@
         .print-letterhead-text { font-family: var(--font-mono); font-size: 9px; color: #5a5346; line-height: 1.4; }
         .print-letterhead-text strong { display: block; color: #161412; font-size: 10px; }
         .header, .footer, .btn, .upload-area, .edit-controls, #loginScreen,
-        .modal, .admin-panel, .form-group, #uploadCard, #contextCard,
+        .modal, .admin-panel, .form-group, #uploadCard, #contextCard, #typologyCard, #planCard,
         .notification, #analyzeBtn, #exportCard .btn-group, #correctTypologyBtn, .btn-crop { display: none !important; }
         #exportCard > .card-title { display: none !important; }
         .container { padding: 0 !important; max-width: 100% !important; }
