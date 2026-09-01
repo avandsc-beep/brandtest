@@ -6,25 +6,20 @@
 // Variables de entorno: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY.
 
 import { createClient } from '@supabase/supabase-js';
+import { checkOrigin, getAuthedUser } from './_utils.js';
 
 export default async function handler(req, res) {
     if (req.method !== 'GET') {
         return res.status(405).json({ error: 'Método no permitido' });
     }
-
-    const token = (req.headers.authorization || '').replace('Bearer ', '');
-    if (!token) {
-        return res.status(401).json({ error: 'No autenticado' });
-    }
+    if (!checkOrigin(req, res)) return;
 
     const supabaseAdmin = createClient(
         process.env.SUPABASE_URL,
         process.env.SUPABASE_SERVICE_ROLE_KEY
     );
-    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
-    if (authError || !user) {
-        return res.status(401).json({ error: 'Sesión inválida o expirada' });
-    }
+    const user = await getAuthedUser(req, res, supabaseAdmin);
+    if (!user) return;
 
     const [profileRes, subscriptionRes, plansRes, packagesRes] = await Promise.all([
         supabaseAdmin.from('users').select('credits').eq('id', user.id).single(),

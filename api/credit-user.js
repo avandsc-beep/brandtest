@@ -13,25 +13,36 @@
 //                                  función y regalarse créditos.
 
 import { createClient } from '@supabase/supabase-js';
+import { checkOrigin, rateLimit, requestIp, sanitizeText } from './_utils.js';
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Método no permitido' });
     }
-
-    const { whatsapp, amount, adminSecret } = req.body || {};
-
-    if (!process.env.ADMIN_SECRET || adminSecret !== process.env.ADMIN_SECRET) {
-        return res.status(401).json({ error: 'No autorizado' });
-    }
-    if (!whatsapp || !amount || amount <= 0) {
-        return res.status(400).json({ error: 'Faltan datos (whatsapp o monto inválido)' });
-    }
+    if (!checkOrigin(req, res)) return;
 
     const supabaseAdmin = createClient(
         process.env.SUPABASE_URL,
         process.env.SUPABASE_SERVICE_ROLE_KEY
     );
+
+    // Rate limit por IP ANTES de comparar el secret: frena fuerza bruta
+    // contra ADMIN_SECRET (5 intentos/hora por IP).
+    const ok = await rateLimit(res, supabaseAdmin, {
+        identifier: requestIp(req), endpoint: 'credit-user', max: 5, windowMinutes: 60,
+    });
+    if (!ok) return;
+
+    const { adminSecret } = req.body || {};
+    const whatsapp = sanitizeText((req.body || {}).whatsapp, 20).replace(/\D/g, '');
+    const amount = Number((req.body || {}).amount);
+
+    if (!process.env.ADMIN_SECRET || adminSecret !== process.env.ADMIN_SECRET) {
+        return res.status(401).json({ error: 'No autorizado' });
+    }
+    if (!whatsapp || !Number.isFinite(amount) || amount <= 0 || amount > 100000) {
+        return res.status(400).json({ error: 'Faltan datos (whatsapp o monto inválido)' });
+    }
 
     const { data: user, error: findError } = await supabaseAdmin
         .from('users')

@@ -10,30 +10,32 @@
 // Variables de entorno: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, PADDLE_ENV.
 
 import { createClient } from '@supabase/supabase-js';
+import { checkOrigin, getAuthedUser, isCatalogId, rateLimit } from './_utils.js';
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Método no permitido' });
     }
+    if (!checkOrigin(req, res)) return;
 
     const { planId, packageId } = req.body || {};
     if ((!planId && !packageId) || (planId && packageId)) {
         return res.status(400).json({ error: 'Indica planId o packageId (uno solo)' });
     }
-
-    const token = (req.headers.authorization || '').replace('Bearer ', '');
-    if (!token) {
-        return res.status(401).json({ error: 'No autenticado' });
+    if (!isCatalogId(planId || packageId)) {
+        return res.status(400).json({ error: 'Identificador inválido' });
     }
 
     const supabaseAdmin = createClient(
         process.env.SUPABASE_URL,
         process.env.SUPABASE_SERVICE_ROLE_KEY
     );
-    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
-    if (authError || !user) {
-        return res.status(401).json({ error: 'Sesión inválida o expirada' });
-    }
+    const user = await getAuthedUser(req, res, supabaseAdmin);
+    if (!user) return;
+    const ok = await rateLimit(res, supabaseAdmin, {
+        identifier: user.id, endpoint: 'checkout', max: 20, windowMinutes: 60,
+    });
+    if (!ok) return;
 
     const table = planId ? 'plans' : 'credit_packages';
     const { data: item, error: itemError } = await supabaseAdmin

@@ -2,27 +2,45 @@
 
 Instrumento de valoracion de marcas graficas basado en los indicadores de Chaves y Belluccia.
 
-## Estado del frontend
+## IMPORTANTE: donde se trabaja
 
-El proyecto fue migrado a React con Vite manteniendo la interfaz y la logica original del archivo `index.html`.
-
-La migracion actual es una primera version de compatibilidad: React monta el mismo HTML heredado y ejecuta la logica original desde un modulo. Esto permite mantener el producto funcional mientras despues se refactoriza por componentes.
+**Todo el desarrollo es en React + Vite, dentro de `src/`.** No edites `index.html`
+(es solo el punto de entrada de Vite, ~30 lineas: si crece, algo esta mal) ni
+subas archivos por la web de GitHub — cada cambio se hace en el codigo, se
+prueba local con `npm run dev` + `npm test`, y se pushea a `main` (Vercel
+deploya solo). El HTML viejo pre-migracion quedo como referencia en
+`legacy-index.html` y `src/legacy/` — no se toca ni se vuelve a usar.
 
 ## Estructura
 
 ```text
-api/                         Funciones del backend
-public/                      Archivos publicos de la app
+api/                         Funciones serverless (Vercel). _utils.js = helpers de seguridad compartidos
+api/webhooks/paddle.js       Webhook de pagos — el UNICO lugar que convierte dinero en creditos
+api/supabase_schema.sql      Schema completo de la base (fuente de verdad, PARTE 1-22)
+public/                      Archivos publicos de la app (iconos PWA, manifest, service worker)
+src/components/              La app real, por componentes (dashboard, admin, results, upload...)
+src/hooks/                   Logica de datos (useBilling, useCredits, useSupabaseAuth...)
+src/lib/                     Motor de analisis y utilidades puras
+src/styles/app-theme.css     Sistema visual (tokens + clases bx-)
 src/App.jsx                  Componente React principal
 src/main.jsx                 Entrada de React
-src/legacy/legacy.css        Estilos extraidos del HTML original
-src/legacy/legacyApp.js      Logica original extraida del HTML
-src/legacy/legacyMarkup.js   Marcado original extraido del body
-legacy-index.html            Copia del HTML original antes de migrar
-index.html                   Entrada de Vite
+src/legacy/                  Codigo pre-migracion (solo referencia, no se monta)
+legacy-index.html            Copia del HTML original antes de migrar (solo referencia)
+index.html                   Entrada de Vite — NO EDITAR
+vercel.json                  Headers de seguridad (CSP, HSTS, etc.)
 vite.config.js               Configuracion de Vite
-test_engine.js               Pruebas de regresion del motor (node test_engine.js)
+test_engine.js               Pruebas de regresion del motor (npm test)
 ```
+
+## Seguridad (no romper al tocar el backend)
+
+- Todos los endpoints del navegador validan server-side: origen (CORS),
+  sesion real de Supabase, formato de inputs y rate limiting (ver `api/_utils.js`).
+- La base usa Row Level Security en todas las tablas; solo el service role
+  (backend) puede escribir creditos/pagos.
+- Secretos SOLO en variables de entorno de Vercel — jamas en el codigo ni en Git.
+- El CSP de `vercel.json` lista los origenes permitidos (Supabase, Paddle,
+  Google Fonts): si agregas un servicio externo nuevo, hay que sumarlo ahi.
 
 ## Requisitos para una laptop nueva
 

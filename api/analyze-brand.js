@@ -20,13 +20,20 @@
 //   SUPABASE_SERVICE_ROLE_KEY   -> el mismo de siempre
 
 import { createClient } from "@supabase/supabase-js";
+import { checkOrigin, rateLimit, sanitizeText } from "./_utils.js";
 
 const GUEST_HOURLY_LIMIT = 3;
+const USER_HOURLY_LIMIT = 40;
+// base64 de ~6 MB de imagen — más que suficiente para un logo, y frena
+// payloads gigantes antes de mandarlos a la API de Anthropic.
+const MAX_IMAGE_BASE64_CHARS = 8_000_000;
+const VALID_MEDIA_TYPES = ["image/png", "image/jpeg", "image/webp", "image/gif"];
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Método no permitido" });
   }
+  if (!checkOrigin(req, res)) return;
 
   const supabaseAdmin = createClient(
     process.env.SUPABASE_URL,
@@ -49,6 +56,12 @@ export default async function handler(req, res) {
       return res.status(401).json({ error: "Sesión inválida" });
     }
     requestUserId = user.id;
+    // Techo por usuario aun con créditos: frena scripts desbocados antes
+    // de que quemen saldo (y presupuesto de IA) en minutos.
+    const ok = await rateLimit(res, supabaseAdmin, {
+      identifier: user.id, endpoint: "analyze-brand", max: USER_HOURLY_LIMIT, windowMinutes: 60,
+    });
+    if (!ok) return;
   } else {
     const ip = (
       (req.headers["x-forwarded-for"] ||
@@ -75,8 +88,14 @@ export default async function handler(req, res) {
   }
 
   const { imageBase64, mediaType, metrics, context } = req.body || {};
-  if (!imageBase64) {
+  if (!imageBase64 || typeof imageBase64 !== "string") {
     return res.status(400).json({ error: "Falta la imagen" });
+  }
+  if (imageBase64.length > MAX_IMAGE_BASE64_CHARS) {
+    return res.status(413).json({ error: "La imagen es demasiado grande — reducila e intenta de nuevo" });
+  }
+  if (mediaType && !VALID_MEDIA_TYPES.includes(mediaType)) {
+    return res.status(400).json({ error: "Formato de imagen no soportado" });
   }
   if (!process.env.ANTHROPIC_API_KEY) {
     return res
@@ -124,24 +143,29 @@ export default async function handler(req, res) {
       "%"
     : "";
 
+  // Los campos de contexto son texto libre del usuario que termina dentro
+  // del prompt — se acotan en largo y tipo (sanitizeText) para que nadie
+  // meta instrucciones kilométricas o payloads raros por ahí.
+  const ctx = {
+    brandName: sanitizeText(context?.brandName, 120),
+    sector: sanitizeText(context?.sector, 120),
+    competitors: sanitizeText(context?.competitors, 300),
+    attributes: sanitizeText(context?.attributes, 300),
+  };
   const contextText =
-    context &&
-    (context.brandName ||
-      context.sector ||
-      context.competitors ||
-      context.attributes)
+    ctx.brandName || ctx.sector || ctx.competitors || ctx.attributes
       ? "Contexto proporcionado por el usuario:\n" +
         "- Nombre de marca: " +
-        (context.brandName || "no especificado") +
+        (ctx.brandName || "no especificado") +
         "\n" +
         "- Sector: " +
-        (context.sector || "no especificado") +
+        (ctx.sector || "no especificado") +
         "\n" +
         "- Competencia: " +
-        (context.competitors || "no especificada") +
+        (ctx.competitors || "no especificada") +
         "\n" +
         "- Atributos de identidad: " +
-        (context.attributes || "no especificados")
+        (ctx.attributes || "no especificados")
       : "";
 
   const systemPrompt =

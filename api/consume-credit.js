@@ -10,13 +10,20 @@
 //   SUPABASE_SERVICE_ROLE_KEY
 
 import { createClient } from '@supabase/supabase-js';
+import { checkOrigin } from './_utils.js';
+
+const VALID_PLANS = ['libre', 'estandar', 'pro'];
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Método no permitido' });
     }
+    if (!checkOrigin(req, res)) return;
 
     const { plan } = req.body || {};
+    if (!VALID_PLANS.includes(plan)) {
+        return res.status(400).json({ error: 'Plan inválido' });
+    }
     const authHeader = req.headers.authorization || '';
     const token = authHeader.replace('Bearer ', '');
     if (!token) {

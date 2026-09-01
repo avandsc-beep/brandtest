@@ -5,25 +5,31 @@
 // dos veces por la restricción UNIQUE de la base de datos.
 
 import { createClient } from '@supabase/supabase-js';
+import { checkOrigin, getAuthedUser, rateLimit, sanitizeText } from './_utils.js';
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Método no permitido' });
     }
+    if (!checkOrigin(req, res)) return;
 
-    const { sampleId, answeredType } = req.body || {};
-    const authHeader = req.headers.authorization || '';
-    const token = authHeader.replace('Bearer ', '');
-    if (!token) return res.status(401).json({ error: 'No autenticado' });
-    if (!sampleId || !answeredType) return res.status(400).json({ error: 'Faltan datos' });
+    const { sampleId } = req.body || {};
+    const answeredType = sanitizeText((req.body || {}).answeredType, 60);
+    if (!sampleId || !Number.isInteger(Number(sampleId)) || !answeredType) {
+        return res.status(400).json({ error: 'Faltan datos' });
+    }
 
     const supabaseAdmin = createClient(
         process.env.SUPABASE_URL,
         process.env.SUPABASE_SERVICE_ROLE_KEY
     );
 
-    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
-    if (authError || !user) return res.status(401).json({ error: 'Sesión inválida' });
+    const user = await getAuthedUser(req, res, supabaseAdmin);
+    if (!user) return;
+    const ok = await rateLimit(res, supabaseAdmin, {
+        identifier: user.id, endpoint: 'submit-recognition', max: 60, windowMinutes: 60,
+    });
+    if (!ok) return;
 
     const { data: sample, error: sampleError } = await supabaseAdmin
         .from('calibration_samples')
@@ -45,9 +51,12 @@ export default async function handler(req, res) {
         return res.status(500).json({ error: insertError.message });
     }
 
-    const { data: profile } = await supabaseAdmin.from('users').select('credits').eq('id', user.id).single();
-    const newCredits = (profile ? profile.credits : 0) + 1;
-    await supabaseAdmin.from('users').update({ credits: newCredits }).eq('id', user.id);
+    // add_credits (PARTE 19) suma en una sola sentencia — sin carrera si
+    // llegan dos requests a la vez, a diferencia del viejo leer-y-escribir.
+    const { data: newCredits } = await supabaseAdmin.rpc('add_credits', {
+        p_user_id: user.id,
+        p_delta: 1,
+    });
 
     return res.status(200).json({
         correct,

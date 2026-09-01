@@ -555,3 +555,22 @@ create policy "admins ven todas las suscripciones"
   using (public.is_admin_user());
 
 -- webhook_events: sin políticas — solo el service role la toca.
+
+-- ============================================================
+-- PARTE 22 — Rate limiting genérico para los endpoints del API. Cada
+-- request registrada cuenta contra una ventana móvil (identificador =
+-- user_id o IP + nombre del endpoint). Solo el service role escribe;
+-- RLS habilitado sin políticas = invisible para el navegador.
+-- ============================================================
+
+create table if not exists public.rate_limit_log (
+  id bigint generated always as identity primary key,
+  identifier text not null,
+  endpoint text not null,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists rate_limit_log_lookup
+  on public.rate_limit_log (identifier, endpoint, created_at desc);
+
+alter table public.rate_limit_log enable row level security;
