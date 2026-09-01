@@ -1,0 +1,78 @@
+/* Estilos compartidos de las páginas legales (terminos/privacidad/
+   reembolsos). Mismos tokens que src/styles/app-theme.css — se duplican
+   acá porque estas páginas son HTML estático servido fuera del bundle. */
+:root {
+  --bg: #313130;
+  --surface: #1d1a15;
+  --line: #4a453c;
+  --ink: #ffffff;
+  --ink-soft: #c9c5ba;
+  --accent: #d9e021;
+  --coral: #e8604a;
+}
+* { margin: 0; box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--ink-soft);
+  font-family: "Montserrat", system-ui, sans-serif;
+  font-size: 0.95rem;
+  line-height: 1.7;
+  padding: 0 1.25rem 4rem;
+}
+header.site {
+  background: linear-gradient(135deg, #0086c1, #009ee2);
+  margin: 0 -1.25rem 2.5rem;
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+header.site a { color: #fff; text-decoration: none; font-weight: 600; font-size: 0.85rem; }
+header.site .logo { font-family: "MuseoModerno", sans-serif; font-weight: 800; font-size: 1.3rem; color: #fff; letter-spacing: 0.02em; }
+header.site .logo span { color: var(--accent); }
+main { max-width: 760px; margin: 0 auto; }
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 2rem;
+}
+@media (max-width: 560px) { .card { padding: 1.4rem; } }
+h1 {
+  font-family: "MuseoModerno", sans-serif;
+  font-size: 1.7rem;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 0.4rem;
+  line-height: 1.2;
+}
+.updated { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 2rem; }
+h2 {
+  font-family: "MuseoModerno", sans-serif;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--ink);
+  margin: 1.8rem 0 0.6rem;
+}
+p { margin-bottom: 0.8rem; }
+ul { margin: 0 0 0.8rem 1.3rem; padding: 0; }
+li { margin-bottom: 0.4rem; }
+strong { color: var(--ink); font-weight: 600; }
+a { color: var(--accent); }
+.legal-nav {
+  display: flex;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 2rem;
+  font-size: 0.82rem;
+}
+.contact {
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  margin-top: 1.5rem;
+}
