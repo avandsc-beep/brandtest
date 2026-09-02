@@ -574,3 +574,101 @@ create index if not exists rate_limit_log_lookup
   on public.rate_limit_log (identifier, endpoint, created_at desc);
 
 alter table public.rate_limit_log enable row level security;
+
+-- ============================================================
+-- PARTE 23 — Cupones de créditos. Código canjeable una sola vez por
+-- cuenta (constraint UNIQUE en coupon_redemptions), con tope global de
+-- usos opcional definido por el admin al crear el cupón. La acreditación
+-- es atómica vía redeem_coupon() — mismo patrón que add_credits().
+-- ============================================================
+
+create table if not exists public.coupons (
+  id bigint generated always as identity primary key,
+  code text unique not null,
+  credits int not null check (credits > 0),
+  max_uses int check (max_uses is null or max_uses > 0),
+  uses_count int not null default 0,
+  active boolean not null default true,
+  created_by uuid references auth.users on delete set null,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists public.coupon_redemptions (
+  id bigint generated always as identity primary key,
+  coupon_id bigint references public.coupons on delete cascade not null,
+  user_id uuid references auth.users on delete cascade not null,
+  credits_granted int not null,
+  created_at timestamptz not null default now(),
+  unique (coupon_id, user_id)
+);
+
+alter table public.coupons enable row level security;
+alter table public.coupon_redemptions enable row level security;
+
+create policy "admins administran cupones"
+  on public.coupons for all
+  using (public.is_admin_user())
+  with check (public.is_admin_user());
+
+create policy "admins ven todos los canjes"
+  on public.coupon_redemptions for select
+  using (public.is_admin_user());
+
+create policy "usuarios ven sus propios canjes"
+  on public.coupon_redemptions for select
+  using (auth.uid() = user_id);
+
+-- Canjeo atómico: bloquea la fila del cupón (evita que dos canjes
+-- simultáneos superen max_uses), valida estado y unicidad por cuenta,
+-- inserta el canje, incrementa el contador y acredita en un solo paso.
+create or replace function public.redeem_coupon(p_user_id uuid, p_code text)
+returns int
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_coupon record;
+  v_new_credits int;
+begin
+  select * into v_coupon from public.coupons
+    where code = upper(trim(p_code)) for update;
+
+  if not found then
+    raise exception 'CUPON_NO_EXISTE';
+  end if;
+  if not v_coupon.active then
+    raise exception 'CUPON_INACTIVO';
+  end if;
+  if v_coupon.max_uses is not null and v_coupon.uses_count >= v_coupon.max_uses then
+    raise exception 'CUPON_AGOTADO';
+  end if;
+  if exists (
+    select 1 from public.coupon_redemptions
+    where coupon_id = v_coupon.id and user_id = p_user_id
+  ) then
+    raise exception 'CUPON_YA_USADO';
+  end if;
+
+  insert into public.coupon_redemptions (coupon_id, user_id, credits_granted)
+  values (v_coupon.id, p_user_id, v_coupon.credits);
+
+  update public.coupons set uses_count = uses_count + 1 where id = v_coupon.id;
+
+  update public.users set credits = credits + v_coupon.credits
+    where id = p_user_id
+    returning credits into v_new_credits;
+
+  return v_new_credits;
+end;
+$$;
+
+revoke execute on function public.redeem_coupon(uuid, text) from public;
+revoke execute on function public.redeem_coupon(uuid, text) from anon;
+revoke execute on function public.redeem_coupon(uuid, text) from authenticated;
+
+-- Cupón de prueba solicitado: 100 créditos, sin tope global de usos
+-- (cada cuenta igual solo puede canjearlo una vez).
+insert into public.coupons (code, credits, max_uses, active)
+values ('PRUEBA100', 100, null, true)
+on conflict (code) do nothing;

@@ -6,6 +6,7 @@ import { diagnosticVerdict } from '../../lib/scoring.js';
 import { useDiagnosisHistory } from '../../hooks/useDiagnosisHistory.js';
 import { Reveal } from '../common/Reveal.jsx';
 import { BillingSection } from './BillingSection.jsx';
+import { CouponRedeem } from './CouponRedeem.jsx';
 import { getInitials } from '../../lib/textUtils.js';
 
 const SUPPORT_WHATSAPP = '59170857324';
@@ -146,6 +147,8 @@ export function DashboardView({ user, patchUser, onViewHistoryResult }) {
           );
         })}
       </div>
+
+      <CouponRedeem patchUser={patchUser} />
 
       <BillingSection user={user} patchUser={patchUser} />
 

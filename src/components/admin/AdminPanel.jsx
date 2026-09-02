@@ -4,10 +4,12 @@ import { CreditsTab } from './CreditsTab.jsx';
 import { ValoracionTab } from './ValoracionTab.jsx';
 import { MetricsTab } from './MetricsTab.jsx';
 import { BillingTab } from './BillingTab.jsx';
+import { CouponsTab } from './CouponsTab.jsx';
 import { Reveal } from '../common/Reveal.jsx';
 
 const TABS = [
   { id: 'creditos', label: 'Créditos' },
+  { id: 'cupones', label: 'Cupones' },
   { id: 'valoracion', label: 'Valoración de marca' },
   { id: 'metricas', label: 'Métricas' },
   { id: 'facturacion', label: 'Facturación' },
@@ -37,6 +39,7 @@ export function AdminPanel({ user, onClose }) {
         </div>
 
         {tab === 'creditos' && <CreditsTab />}
+        {tab === 'cupones' && <CouponsTab />}
         {tab === 'valoracion' && <ValoracionTab user={user} />}
         {tab === 'metricas' && <MetricsTab />}
         {tab === 'facturacion' && <BillingTab />}
