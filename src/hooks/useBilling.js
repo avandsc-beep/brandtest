@@ -11,7 +11,7 @@ const PADDLE_JS_URL = 'https://cdn.paddle.com/paddle/v2/paddle.js';
 
 let paddleLoadPromise = null;
 
-function loadPaddleJs() {
+export function loadPaddleJs() {
   if (window.Paddle) return Promise.resolve(window.Paddle);
   if (!paddleLoadPromise) {
     paddleLoadPromise = new Promise((resolve, reject) => {
@@ -97,6 +97,10 @@ export function useBilling({ user, patchUser }) {
 
         const clientToken = import.meta.env.VITE_PADDLE_CLIENT_TOKEN;
         if (!clientToken) throw new Error('Falta configurar VITE_PADDLE_CLIENT_TOKEN');
+        const tokenPrefix = data.environment === 'production' ? 'live_' : 'test_';
+        if (!clientToken.startsWith(tokenPrefix)) {
+          throw new Error('La configuración de pagos no coincide con el entorno. Contactá con soporte.');
+        }
 
         const Paddle = await loadPaddleJs();
         if (!paddleReady.current) {

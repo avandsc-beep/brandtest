@@ -14,6 +14,7 @@ export function Footer() {
         <a href="/terminos.html" className="hover:text-process-cyan transition-colors">Términos y Condiciones</a>
         <a href="/privacidad.html" className="hover:text-process-cyan transition-colors">Privacidad</a>
         <a href="/reembolsos.html" className="hover:text-process-cyan transition-colors">Reembolsos</a>
+        <a href="https://wa.me/59170857324" className="hover:text-process-cyan transition-colors" rel="noopener">Contacto y soporte</a>
       </p>
     </footer>
   );

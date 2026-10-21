@@ -6,11 +6,17 @@ import { HomeView } from './components/home/HomeView.jsx';
 import { LoginModal } from './components/modals/LoginModal.jsx';
 import { MethodologyModal } from './components/modals/MethodologyModal.jsx';
 import { PostAuthApp } from './PostAuthApp.jsx';
+import { PaymentLinkView } from './components/billing/PaymentLinkView.jsx';
 
 // Punto de entrada real de React (ya no dangerouslySetInnerHTML — ver
 // plan de migración: src/legacy/legacyMarkup.js y legacyApp.js quedan
 // solo como referencia funcional hasta borrarse en la limpieza final).
 export default function App() {
+  if (window.location.pathname === '/pago') return <PaymentLinkView />;
+  return <MainApp />;
+}
+
+function MainApp() {
   const { status, user, isGuest, loginWithGoogle, enterAsGuest, logout, patchUser } = useSupabaseAuth();
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isMethodologyOpen, setIsMethodologyOpen] = useState(false);

@@ -59,11 +59,14 @@ function verifyPaddleSignature(rawBody, signatureHeader, secret) {
 // haber salido de price_ids que nosotros cargamos, así que si no matchea
 // nada es un evento que no nos concierne (se registra y se ignora).
 async function resolveCatalogItems(supabase, priceIds) {
-    const [{ data: plans }, { data: packages }] = await Promise.all([
+    const [planResult, packageResult] = await Promise.all([
         supabase.from('plans').select('id, credits_included, paddle_price_id').in('paddle_price_id', priceIds),
         supabase.from('credit_packages').select('id, credits, paddle_price_id').in('paddle_price_id', priceIds),
     ]);
-    return { plans: plans || [], packages: packages || [] };
+    if (planResult.error || packageResult.error) {
+        throw new Error('No se pudo consultar el catálogo');
+    }
+    return { plans: planResult.data || [], packages: packageResult.data || [] };
 }
 
 async function upsertSubscription(supabase, data) {
@@ -75,7 +78,7 @@ async function upsertSubscription(supabase, data) {
     const planId = plans[0]?.id || data.custom_data?.plan_id || null;
     if (!planId) return;
 
-    await supabase.from('subscriptions').upsert(
+    const { error } = await supabase.from('subscriptions').upsert(
         {
             user_id: userId,
             plan_id: planId,
@@ -88,6 +91,7 @@ async function upsertSubscription(supabase, data) {
         },
         { onConflict: 'paddle_subscription_id' }
     );
+    if (error) throw new Error('No se pudo actualizar la suscripción: ' + error.message);
 }
 
 async function handleTransactionCompleted(supabase, data) {
@@ -108,28 +112,20 @@ async function handleTransactionCompleted(supabase, data) {
     if (!creditsToAdd) return; // price desconocido: no es de nuestro catálogo
 
     // El insert en purchases es el candado contra doble acreditación:
-    // paddle_transaction_id es unique, así que si este pago ya se procesó
-    // (webhook reenviado con otro event_id), el insert falla con 23505 y
-    // NO se acreditan créditos de nuevo.
-    const { error: purchaseError } = await supabase.from('purchases').insert({
-        user_id: userId,
-        kind: isSubscription ? 'subscription' : 'credit_package',
-        package_id: pkg ? pkg.id : null,
-        amount_cents: parseInt(data.details?.totals?.total || '0', 10),
-        paddle_transaction_id: data.id,
-        status: 'completed',
+    // paddle_transaction_id es unique: un pago ya procesado se ignora
+    // incluso si llega con otro event_id.
+    // La compra y el saldo se confirman en UNA transacción de PostgreSQL.
+    // Si falla el saldo, también se revierte la compra y el reintento es seguro.
+    const { error: purchaseError } = await supabase.rpc('fulfill_paddle_purchase', {
+        p_user_id: userId,
+        p_kind: isSubscription ? 'subscription' : 'credit_package',
+        p_package_id: pkg ? pkg.id : null,
+        p_amount_cents: parseInt(data.details?.totals?.total || '0', 10),
+        p_transaction_id: data.id,
+        p_credits: creditsToAdd,
     });
     if (purchaseError) {
-        if (purchaseError.code === '23505') return; // ya procesada — no duplicar
-        throw new Error('No se pudo registrar la compra: ' + purchaseError.message);
-    }
-
-    const { error: creditError } = await supabase.rpc('add_credits', {
-        p_user_id: userId,
-        p_delta: creditsToAdd,
-    });
-    if (creditError) {
-        throw new Error('Compra registrada pero fallo al acreditar: ' + creditError.message);
+        throw new Error('No se pudo acreditar la compra: ' + purchaseError.message);
     }
 }
 
@@ -177,6 +173,7 @@ export default async function handler(req, res) {
             case 'subscription.created':
             case 'subscription.activated':
             case 'subscription.updated':
+            case 'subscription.past_due':
             case 'subscription.canceled':
             case 'subscription.paused':
             case 'subscription.resumed':

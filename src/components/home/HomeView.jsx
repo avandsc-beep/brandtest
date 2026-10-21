@@ -1,6 +1,7 @@
 import { Layers, Maximize2, Eye, BrainCircuit, Target, Sparkles, CheckCircle2, ArrowRight } from 'lucide-react';
 import { BrandMark } from '../layout/BrandLogo.jsx';
 import { Reveal } from '../common/Reveal.jsx';
+import { PublicPricing } from '../billing/PublicPricing.jsx';
 
 // Definiciones idénticas a las usadas por el motor real (src/lib/scoring.js) —
 // no se inventan descripciones nuevas para el marketing.
@@ -109,7 +110,7 @@ export function HomeView({ onRequireAuth, onOpenMethodology }) {
 
       <Reveal delay={200}>
         <div className="bx-card">
-          <div className="bx-card-title">Planes</div>
+          <div className="bx-card-title">Créditos por diagnóstico</div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
             {PLANS.map((plan) => (
               <div key={plan.id} className="bx-plan-card relative">
@@ -138,6 +139,7 @@ export function HomeView({ onRequireAuth, onOpenMethodology }) {
           </p>
         </div>
       </Reveal>
+      <PublicPricing onRequireAuth={onRequireAuth} />
     </div>
   );
 }
