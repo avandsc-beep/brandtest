@@ -16,14 +16,15 @@ export function CouponRedeem({ patchUser }) {
   return (
     <Reveal delay={140}>
       <div className="bx-card">
-        <div className="bx-card-title">Canjear cupón</div>
+        <div className="bx-card-title">Aplicar cupón</div>
         <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 sm:items-end">
           <div className="bx-form-group flex-1">
-            <label>Código de cupón</label>
+            <label htmlFor="coupon-code">Código de cupón</label>
             <input
+              id="coupon-code"
               value={code}
               onChange={(e) => setCode(e.target.value.toUpperCase())}
-              placeholder="Ej: PRUEBA100"
+              placeholder="Ingresá tu código de cupón"
               className="bx-form-input uppercase"
             />
           </div>
@@ -32,7 +33,7 @@ export function CouponRedeem({ patchUser }) {
             disabled={busy || !code.trim()}
             className="bx-btn bx-btn-primary flex items-center justify-center gap-2 disabled:opacity-50"
           >
-            <Ticket className="w-4 h-4" /> Canjear
+            <Ticket className="w-4 h-4" /> Aplicar cupón
           </button>
         </form>
         {message && (

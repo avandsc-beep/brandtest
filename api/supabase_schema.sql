@@ -667,11 +667,10 @@ revoke execute on function public.redeem_coupon(uuid, text) from public;
 revoke execute on function public.redeem_coupon(uuid, text) from anon;
 revoke execute on function public.redeem_coupon(uuid, text) from authenticated;
 
--- Cupón de prueba solicitado: 100 créditos, sin tope global de usos
--- (cada cuenta igual solo puede canjearlo una vez).
+-- Cupón histórico de prueba: queda desactivado también al reinstalar el esquema.
 insert into public.coupons (code, credits, max_uses, active)
-values ('PRUEBA100', 100, null, true)
-on conflict (code) do nothing;
+values ('PRUEBA100', 100, null, false)
+on conflict (code) do update set active = false;
 -- Ejecutar en Supabase antes de desplegar el webhook actualizado.
 -- Una compra y su acreditación se confirman o revierten juntas.
 create or replace function public.fulfill_paddle_purchase(
